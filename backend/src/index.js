@@ -17,45 +17,14 @@ app.use(helmet({
   contentSecurityPolicy: false,
 }));
 
-// Configuración de CORS
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://fincentiva-feb21-2025.vercel.app',
-  'https://fincentiva-feb21-2025-front.vercel.app'
-];
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Permitir solicitudes sin origen (como las de Postman)
-    if (!origin) {
-      return callback(null, true);
-    }
-    
-    // Permitir localhost
-    if (origin.startsWith('http://localhost')) {
-      return callback(null, true);
-    }
-    
-    // Permitir dominios específicos
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    // Permitir cualquier subdominio de vercel.app que contenga fincentiva-feb21-2025
-    if (origin.includes('fincentiva-feb21-2025') && origin.endsWith('.vercel.app')) {
-      return callback(null, true);
-    }
-    
-    // Rechazar otros orígenes
-    callback(new Error('Not allowed by CORS'));
-  },
+// Configuración de CORS - Simplificada para permitir todos los orígenes
+app.use(cors({
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  maxAge: 600 // Cache preflight requests for 10 minutes
-};
+  credentials: true
+}));
 
-app.use(cors(corsOptions));
 app.use(express.json());
 
 // Rate limiting
