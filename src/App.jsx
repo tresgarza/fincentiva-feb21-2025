@@ -116,7 +116,7 @@ const Home = () => {
         <Header />
         <Hero />
         
-        <section className="container mx-auto px-4 py-4">
+        <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {error && (
             <div className="max-w-[40rem] mx-auto mb-4">
               <div className="bg-red-500/10 text-red-500 px-4 py-2 rounded-lg">
@@ -125,8 +125,7 @@ const Home = () => {
             </div>
           )}
           
-          <div className="w-full max-w-[1400px] mx-auto" id="get-started">
-            {/* Loader Global */}
+          <div className="w-full max-w-[1400px] mx-auto px-0 sm:px-4 lg:px-8" id="get-started">
             <AnimatePresence>
               {showLoader && (
                 <motion.div
@@ -143,8 +142,8 @@ const Home = () => {
                       <div className="w-4 h-4 bg-[#33FF57] rounded-full animate-pulse"></div>
                     </div>
                   </div>
-                  <div className="absolute mt-32 text-n-1 text-lg font-medium">
-                    <div className="flex items-center gap-2">
+                  <div className="absolute mt-32 text-n-1 text-base sm:text-lg font-medium px-4 text-center">
+                    <div className="flex items-center justify-center gap-2 flex-wrap sm:flex-nowrap">
                       <span className="animate-pulse">Calculando tus opciones de financiamiento</span>
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-[#33FF57] rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
@@ -157,13 +156,11 @@ const Home = () => {
               )}
             </AnimatePresence>
 
-            {/* Contenido Principal */}
-            <div className="relative">
-              {/* Formularios */}
+            <div className="relative px-0 sm:px-4">
               {!showFinancingOptions && (
-                <>
+                <div className="w-full max-w-full overflow-hidden">
                   {activeForm === 'product' ? (
-                    <ProductLinkForm
+                    <ProductLinkForm 
                       onSubmit={handleProductSubmit}
                       isLoading={isLoading}
                       company={companyData}
@@ -177,12 +174,11 @@ const Home = () => {
                       showLoader={showLoader}
                     />
                   )}
-                </>
+                </div>
               )}
 
-              {/* Opciones de Financiamiento */}
               {showFinancingOptions && (
-                <div>
+                <div className="w-full max-w-full overflow-hidden">
                   <FinancingOptions
                     product={productData}
                     company={{...companyData, monthly_income: monthlyIncome}}
@@ -199,7 +195,6 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Benefits y Footer */}
         {!showFinancingOptions && <Benefits />}
         <Footer />
       </div>

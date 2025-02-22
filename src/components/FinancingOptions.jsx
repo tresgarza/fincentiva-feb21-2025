@@ -164,27 +164,24 @@ Me gustaría recibir más información sobre el proceso de solicitud.
   };
 
   return (
-    <div className="w-full px-3 py-1">
+    <div className="w-full px-2 sm:px-3 py-1">
       <div className="relative p-0.5 rounded-lg bg-gradient-to-r from-[#40E0D0] via-[#4DE8B2] to-[#3FD494] overflow-hidden max-w-[720px] mx-auto">
-        <div className="relative bg-n-8 rounded-lg p-3">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {/* Product Info Column - Ajustado para móvil */}
-            <div className="bg-n-7 rounded-lg p-3 max-h-[500px] overflow-y-auto">
+        <div className="relative bg-n-8 rounded-lg p-2 sm:p-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3">
+            <div className="bg-n-7 rounded-lg p-2 sm:p-3 max-h-[500px] overflow-y-auto">
               <div className="flex flex-col gap-2">
                 {product.title === "Crédito en Efectivo" ? (
                   <div className="flex flex-col items-center">
-                    <div className="relative w-24 h-24 mb-4">
-                      {/* Círculo exterior animado */}
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 mb-3 sm:mb-4">
                       <div className="absolute inset-0 rounded-full border-4 border-[#40E0D0] animate-spin-slow"></div>
-                      {/* Círculo interior con gradiente */}
                       <div className="absolute inset-2 rounded-full bg-gradient-to-br from-[#40E0D0] to-[#3FD494] flex items-center justify-center">
-                        <div className="text-4xl">💰</div>
+                        <div className="text-3xl sm:text-4xl">💰</div>
                       </div>
                     </div>
-                    <h2 className="text-xl md:text-2xl font-bold text-n-1 mb-2 text-center">
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 text-center text-n-1">
                       {product.title}
                     </h2>
-                    <div className="text-2xl md:text-3xl font-bold text-[#33FF57] mb-4">
+                    <div className="text-xl sm:text-2xl md:text-3xl font-bold text-[#33FF57] mb-3 sm:mb-4">
                       {formatCurrency(product.price)}
                     </div>
                     <div className="w-full space-y-3">
@@ -220,8 +217,8 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                   </div>
                 ) : (
                   <>
-                    <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
-                      <div className="w-full max-w-[120px] aspect-square rounded-md overflow-hidden bg-n-6">
+                    <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                      <div className="w-full max-w-[100px] sm:max-w-[120px] aspect-square rounded-md overflow-hidden bg-n-6">
                         <img
                           src={product.image}
                           alt={product.title}
@@ -229,9 +226,9 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                         />
                       </div>
                       <div className="flex-1 text-center sm:text-left">
-                        <h2 className="text-lg font-bold text-n-1 mb-1.5">{product.title}</h2>
-                        <div className="flex items-baseline gap-2 mb-2 justify-center sm:justify-start">
-                          <span className="text-xl font-bold text-[#33FF57]">
+                        <h2 className="text-base sm:text-lg font-bold text-n-1 mb-1 sm:mb-1.5">{product.title}</h2>
+                        <div className="flex items-baseline gap-2 justify-center sm:justify-start">
+                          <span className="text-lg sm:text-xl font-bold text-[#33FF57]">
                             {formatCurrency(product.price)}
                           </span>
                         </div>
@@ -264,9 +261,8 @@ Me gustaría recibir más información sobre el proceso de solicitud.
               </div>
             </div>
 
-            {/* Financing Options Column - Ajustado para móvil */}
             <div className="flex flex-col h-full">
-              <h2 className="text-lg font-bold text-center text-n-1 mb-2">Elige tu Plan de Financiamiento</h2>
+              <h2 className="text-base sm:text-lg font-bold text-center text-n-1 mb-2">Elige tu Plan de Financiamiento</h2>
               <div className="flex flex-col gap-1.5 flex-grow max-h-[400px] overflow-y-auto">
                 {paymentOptions.map((option, index) => {
                   const isSelected = selectedPlan === option;
@@ -277,12 +273,10 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                       key={option.periods}
                       onClick={() => !exceeds && setSelectedPlan(option)}
                       className={`
-                        relative bg-n-7 rounded-md p-2 
+                        relative bg-n-7 rounded-md p-2 sm:p-3
                         ${exceeds ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.005] hover:shadow-sm hover:shadow-n-1/5'}
                         transition-all duration-300 ease-in-out
-                        ${isSelected && !exceeds
-                          ? 'ring-1 ring-[#33FF57] shadow-sm shadow-[#33FF57]/20 scale-[1.01]' 
-                          : ''}
+                        ${isSelected && !exceeds ? 'ring-1 ring-[#33FF57] shadow-sm shadow-[#33FF57]/20 scale-[1.01]' : ''}
                       `}
                     >
                       {/* Recommended Badge */}
@@ -360,17 +354,16 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                 })}
               </div>
 
-              {/* Action Buttons - Ajustados para móvil */}
-              <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-2">
+              <div className="flex flex-col sm:flex-row justify-between items-center mt-3 sm:mt-4 gap-2">
                 <Button
-                  className="w-full sm:w-auto px-4 py-2 text-sm bg-n-7 hover:bg-n-6 transition-colors"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm bg-n-7 hover:bg-n-6 transition-colors"
                   onClick={onBack}
                 >
                   Regresar
                 </Button>
                 <Button
                   className={`
-                    w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-[#33FF57] to-[#40E0D0] text-black font-medium
+                    w-full sm:w-auto px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-[#33FF57] to-[#40E0D0] text-black font-medium
                     ${!selectedPlan ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}
                     transition-all duration-300
                   `}
@@ -378,26 +371,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                   onClick={handlePlanSelection}
                 >
                   <span className="flex items-center justify-center gap-1.5">
-                    {selectedPlan ? (
-                      <>
-                        Continuar
-                        <svg 
-                          className="w-4 h-4" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M13 7l5 5m0 0l-5 5m5-5H6" 
-                          />
-                        </svg>
-                      </>
-                    ) : (
-                      'Selecciona un Plan'
-                    )}
+                    {selectedPlan ? 'Continuar' : 'Selecciona un Plan'}
                   </span>
                 </Button>
               </div>

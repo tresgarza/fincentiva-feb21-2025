@@ -103,188 +103,144 @@ const Hero = () => {
             </p>
           </div>
 
-          <div className="max-w-[80rem] mx-auto grid grid-cols-[300px_auto_300px] gap-8 items-start">
-            {/* Tarjeta Amazon (Izquierda) */}
-            <a
-              href="https://www.amazon.com.mx"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="marketplace-card block p-6 rounded-xl bg-n-7 border border-n-1/10 
-                transition-all duration-300 hover:scale-[1.02] hover:bg-n-6 relative overflow-hidden transform-gpu"
-              style={{
-                zIndex: 10,
-                opacity: 1,
-                visibility: 'visible',
-                transform: 'none'
-              }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🛍️</span>
-                <div className="text-2xl font-bold text-[#FF9900] transition-colors duration-300">
-                  Amazon
-                </div>
-              </div>
-              
-              <p className="text-n-3 text-sm transition-colors duration-300 group-hover:text-n-1 mb-4">
-                Millones de productos con envío rápido y garantizado
-              </p>
-              
-              <div className="mt-auto flex items-center text-n-3 text-sm group-hover:text-n-1">
-                <span className="mr-2 transition-transform duration-300 group-hover:translate-x-1">
-                  Explorar productos financiables
-                </span>
-                <svg
-                  className="w-4 h-4 transform transition-transform duration-300 group-hover:translate-x-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
-            </a>
-
-            {/* Guía Visual Animada (Centro) */}
-            <div className="max-w-[40rem] p-4 rounded-xl bg-n-7/50 backdrop-blur-sm border border-n-1/10">
-              <h3 className="text-lg font-bold mb-4 text-[#33FF57]">¿Cómo funciona?</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Financiar Producto */}
-                <div 
-                  onClick={() => {
-                    if (typeof window !== 'undefined' && window.setActiveForm) {
-                      window.setActiveForm('product');
-                    }
-                  }}
-                  className="relative p-4 rounded-lg bg-n-6/50 overflow-hidden group hover:bg-n-6 transition-colors cursor-pointer"
-                >
-                  <div className="absolute top-0 right-0 px-3 py-2 bg-[#33FF57]/20 text-[#33FF57] text-xs rounded-bl-lg">
-                    Opción 1
+          {/* Nueva estructura responsiva */}
+          <div className="max-w-[80rem] mx-auto px-4 sm:px-6">
+            {/* Grid container con diseño responsivo */}
+            <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr_250px] gap-4 lg:gap-8">
+              {/* Tarjeta Amazon (Izquierda) - Más pequeña en móvil */}
+              <a
+                href="https://www.amazon.com.mx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="marketplace-card block p-4 lg:p-6 rounded-xl bg-n-7 border border-n-1/10 
+                  transition-all duration-300 hover:scale-[1.02] hover:bg-n-6 relative overflow-hidden transform-gpu
+                  h-[120px] lg:h-auto"
+              >
+                <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
+                  <span className="text-2xl lg:text-3xl">🛍️</span>
+                  <div className="text-xl lg:text-2xl font-bold text-[#FF9900] transition-colors duration-300">
+                    Amazon
                   </div>
-                  <div className="pt-6">
-                    <h4 className="text-base font-semibold mb-2 text-n-1">Financiar un Producto</h4>
-                    <ol className="text-sm text-n-3 space-y-2 text-left">
-                      <li className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                        <span>Elige tu producto en Amazon o MercadoLibre</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                        <span>Copia el enlace del producto</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                        <span>Pégalo en nuestro simulador y calcula tu plan de pagos</span>
-                      </li>
-                    </ol>
-                    <div className="mt-3 h-8 bg-n-7 rounded overflow-hidden relative group-hover:bg-n-8 transition-colors">
-                      <div className="absolute inset-0 flex items-center px-2 text-xs text-n-3 animate-type-url">
-                        https://www.amazon.com.mx/producto...
+                </div>
+                
+                <p className="text-n-3 text-xs lg:text-sm transition-colors duration-300 group-hover:text-n-1">
+                  Millones de productos con envío rápido y garantizado
+                </p>
+              </a>
+
+              {/* Guía Visual Animada (Centro) - Ocupa todo el ancho en móvil */}
+              <div className="max-w-full lg:max-w-[40rem] p-4 lg:p-6 rounded-xl bg-n-7/50 backdrop-blur-sm border border-n-1/10">
+                <h3 className="text-lg font-bold mb-4 text-[#33FF57]">¿Cómo funciona?</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Financiar Producto */}
+                  <div 
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.setActiveForm) {
+                        window.setActiveForm('product');
+                      }
+                    }}
+                    className="relative p-4 rounded-lg bg-n-6/50 overflow-hidden group hover:bg-n-6 transition-colors cursor-pointer"
+                  >
+                    <div className="absolute top-0 right-0 px-3 py-2 bg-[#33FF57]/20 text-[#33FF57] text-xs rounded-bl-lg">
+                      Opción 1
+                    </div>
+                    <div className="pt-6">
+                      <h4 className="text-base font-semibold mb-2 text-n-1">Financiar un Producto</h4>
+                      <ol className="text-sm text-n-3 space-y-2 text-left">
+                        <li className="flex items-start gap-2">
+                          <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                          <span>Elige tu producto en Amazon o MercadoLibre</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                          <span>Copia el enlace del producto</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                          <span>Pégalo en nuestro simulador y calcula tu plan de pagos</span>
+                        </li>
+                      </ol>
+                      <div className="mt-3 h-8 bg-n-7 rounded overflow-hidden relative group-hover:bg-n-8 transition-colors">
+                        <div className="absolute inset-0 flex items-center px-2 text-xs text-n-3 animate-type-url">
+                          https://www.amazon.com.mx/producto...
+                        </div>
                       </div>
                     </div>
                   </div>
-        </div>
 
-                {/* Solicitar Efectivo */}
-                <div 
-                  onClick={() => {
-                    if (typeof window !== 'undefined' && window.setActiveForm) {
-                      window.setActiveForm('amount');
-                    }
-                  }}
-                  className="relative p-4 rounded-lg bg-n-6/50 overflow-hidden group hover:bg-n-6 transition-colors cursor-pointer"
-                >
-                  <div className="absolute top-0 right-0 px-3 py-2 bg-[#33FF57]/20 text-[#33FF57] text-xs rounded-bl-lg">
-                    Opción 2
-                  </div>
-                  <div className="pt-6">
-                    <h4 className="text-base font-semibold mb-2 text-n-1">Solicitar Efectivo</h4>
-                    <ol className="text-sm text-n-3 space-y-2 text-left">
-                      <li className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                        <span>Ingresa el monto que necesitas</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                        <span>Indica tus ingresos mensuales</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                        <span>Obtén tu plan de pagos personalizado</span>
-                      </li>
-                    </ol>
-                    <div className="mt-3 h-8 bg-n-7 rounded overflow-hidden relative group-hover:bg-n-8 transition-colors">
-                      <div className="absolute inset-0 flex items-center justify-center">
-            <Typewriter
-              options={{
-                strings: [
-                              '$ 10,000 MXN',
-                              '$ 15,000 MXN',
-                              '$ 20,000 MXN',
-                              '$ 25,000 MXN'
-                ],
-                autoStart: true,
-                loop: true,
-                            delay: 50,
-                            deleteSpeed: 30,
-                          }}
-                        />
+                  {/* Solicitar Efectivo */}
+                  <div 
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.setActiveForm) {
+                        window.setActiveForm('amount');
+                      }
+                    }}
+                    className="relative p-4 rounded-lg bg-n-6/50 overflow-hidden group hover:bg-n-6 transition-colors cursor-pointer"
+                  >
+                    <div className="absolute top-0 right-0 px-3 py-2 bg-[#33FF57]/20 text-[#33FF57] text-xs rounded-bl-lg">
+                      Opción 2
+                    </div>
+                    <div className="pt-6">
+                      <h4 className="text-base font-semibold mb-2 text-n-1">Solicitar Efectivo</h4>
+                      <ol className="text-sm text-n-3 space-y-2 text-left">
+                        <li className="flex items-start gap-2">
+                          <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                          <span>Ingresa el monto que necesitas</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                          <span>Indica tus ingresos mensuales</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                          <span>Obtén tu plan de pagos personalizado</span>
+                        </li>
+                      </ol>
+                      <div className="mt-3 h-8 bg-n-7 rounded overflow-hidden relative group-hover:bg-n-8 transition-colors">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Typewriter
+                            options={{
+                              strings: [
+                                '$ 10,000 MXN',
+                                '$ 15,000 MXN',
+                                '$ 20,000 MXN',
+                                '$ 25,000 MXN'
+                              ],
+                              autoStart: true,
+                              loop: true,
+                              delay: 50,
+                              deleteSpeed: 30,
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-        </div>
 
-            {/* Tarjeta MercadoLibre (Derecha) */}
-            <a
-              href="https://www.mercadolibre.com.mx"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="marketplace-card block p-6 rounded-xl bg-n-7 border border-n-1/10 
-                transition-all duration-300 hover:scale-[1.02] hover:bg-n-6 relative overflow-hidden transform-gpu"
-              style={{
-                zIndex: 10,
-                opacity: 1,
-                visibility: 'visible',
-                transform: 'none'
-              }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🌟</span>
-                <div className="text-2xl font-bold text-[#FFE600] transition-colors duration-300">
-                  MercadoLibre
+              {/* Tarjeta MercadoLibre (Derecha) - Más pequeña en móvil */}
+              <a
+                href="https://www.mercadolibre.com.mx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="marketplace-card block p-4 lg:p-6 rounded-xl bg-n-7 border border-n-1/10 
+                  transition-all duration-300 hover:scale-[1.02] hover:bg-n-6 relative overflow-hidden transform-gpu
+                  h-[120px] lg:h-auto"
+              >
+                <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
+                  <span className="text-2xl lg:text-3xl">🌟</span>
+                  <div className="text-xl lg:text-2xl font-bold text-[#FFE600] transition-colors duration-300">
+                    MercadoLibre
+                  </div>
                 </div>
-              </div>
-              
-              <p className="text-n-3 text-sm transition-colors duration-300 group-hover:text-n-1 mb-4">
-                La mayor plataforma de comercio electrónico en México
-              </p>
-              
-              <div className="mt-auto flex items-center text-n-3 text-sm group-hover:text-n-1">
-                <span className="mr-2 transition-transform duration-300 group-hover:translate-x-1">
-                  Explorar productos financiables
-                </span>
-                <svg
-                  className="w-4 h-4 transform transition-transform duration-300 group-hover:translate-x-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
-            </a>
+                
+                <p className="text-n-3 text-xs lg:text-sm transition-colors duration-300 group-hover:text-n-1">
+                  La mayor plataforma de comercio electrónico en México
+                </p>
+              </a>
+            </div>
           </div>
 
           {/* Beneficios Destacados */}

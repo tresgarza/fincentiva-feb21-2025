@@ -149,16 +149,17 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
 
   return (
     <Section id="product-link" className={showLoader ? 'hidden' : 'block'}>
-      <div className="container px-4">
-        <div className="flex flex-col lg:flex-row gap-8 items-stretch justify-center">
-          {/* Guía Visual Animada (Izquierda) - Ajustada para móvil */}
+      <div className="container px-2 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-stretch justify-center">
+          {/* Guía Visual Animada - Ajustada para móvil */}
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full lg:w-[300px] flex flex-col gap-6"
+            className="w-full lg:w-[300px] flex flex-col gap-4 sm:gap-6"
           >
-            <div className="flex-1 bg-n-8/50 rounded-xl p-6 border border-n-6">
+            {/* Panel de guía - Ajustado padding para móvil */}
+            <div className="flex-1 bg-n-8/50 rounded-xl p-4 sm:p-6 border border-n-6">
               <h4 className="text-lg font-semibold mb-4 text-[#33FF57]">Guía Rápida</h4>
               <div className="space-y-4">
                 <motion.div 
@@ -208,7 +209,7 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
               </div>
             </div>
 
-            {/* Información Adicional - Visible solo en pantallas grandes */}
+            {/* Información Adicional Desktop */}
             <div className="hidden lg:block bg-n-8/50 rounded-xl p-6 border border-n-6">
               <h4 className="text-lg font-semibold mb-4 text-[#33FF57]">¿Sabías que?</h4>
               <div className="space-y-3 text-sm text-n-3">
@@ -222,18 +223,18 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
           {/* Formulario Principal - Ajustado para móvil */}
           <div className="w-full lg:w-[40rem] flex">
             <div className="relative p-0.5 rounded-2xl bg-gradient-to-r from-[#40E0D0] via-[#4DE8B2] to-[#3FD494] overflow-hidden flex-1">
-              <div className="relative bg-[#0D1117] rounded-2xl p-4 sm:p-8 h-full flex flex-col">
+              <div className="relative bg-[#0D1117] rounded-2xl p-4 sm:p-6 lg:p-8 h-full flex flex-col">
                 <div className="flex-1">
-                  <div className="flex items-center justify-center mb-6 sm:mb-8">
+                  <div className="flex items-center justify-center mb-4 sm:mb-6 lg:mb-8">
                     <div className="relative">
-                      <FaLink className="text-[#40E0D0] text-3xl sm:text-4xl animate-pulse" />
-                      <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-[#33FF57] rounded-full animate-ping" />
+                      <FaLink className="text-2xl sm:text-3xl lg:text-4xl text-[#40E0D0] animate-pulse" />
+                      <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 lg:w-4 lg:h-4 bg-[#33FF57] rounded-full animate-ping" />
                     </div>
                   </div>
                   
-                  <h3 className="text-xl sm:text-2xl font-bold mb-6 text-center">Comienza tu Compra</h3>
+                  <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6 text-center">Comienza tu Compra</h3>
                   
-                  <form onSubmit={handleSubmit} className="flex flex-col gap-6 sm:gap-8">
+                  <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
                     {/* Campo de Ingresos */}
                     <div className="flex flex-col gap-2 sm:gap-3">
                       <label htmlFor="income" className="text-n-4 text-sm">
@@ -343,8 +344,8 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
             </div>
           </div>
 
-          {/* Información Adicional - Visible solo en pantallas pequeñas */}
-          <div className="block lg:hidden bg-n-8/50 rounded-xl p-6 border border-n-6 mt-6">
+          {/* Información Adicional Mobile */}
+          <div className="block lg:hidden bg-n-8/50 rounded-xl p-4 sm:p-6 border border-n-6">
             <h4 className="text-lg font-semibold mb-4 text-[#33FF57]">¿Sabías que?</h4>
             <div className="space-y-3 text-sm text-n-3">
               <p>• Puedes financiar cualquier producto elegible de las tiendas participantes</p>
