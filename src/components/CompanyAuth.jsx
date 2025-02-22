@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { API_URL } from '../config/api';
+import { TEST_COMPANIES } from '../config/testCompanies';
 import { getCompanies, getByCode } from '../services/api';
 import Button from './Button';
 import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 const CompanyAuth = ({ onAuthenticated }) => {
-  const [employeeCode, setEmployeeCode] = useState('');
+  const [companyCode, setCompanyCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -15,11 +17,27 @@ const CompanyAuth = ({ onAuthenticated }) => {
     setIsLoading(true);
 
     try {
-      const companyData = await getByCode(employeeCode);
-      onAuthenticated(companyData);
-    } catch (error) {
-      setError(error.message || 'Error al verificar credenciales');
-      console.error('Authentication error:', error);
+      // Verificar si es una empresa de prueba
+      const testCompany = TEST_COMPANIES[companyCode.toUpperCase()];
+      if (testCompany) {
+        // Simular delay para mejor UX
+        await new Promise(resolve => setTimeout(resolve, 500));
+        onAuthenticated(testCompany);
+        return;
+      }
+
+      // Si no es empresa de prueba, intentar con el backend
+      const response = await fetch(`${API_URL}/companies/code/${companyCode}`);
+      
+      if (!response.ok) {
+        throw new Error('Error al verificar las credenciales de la empresa');
+      }
+
+      const data = await response.json();
+      onAuthenticated(data);
+    } catch (err) {
+      console.error('Authentication error:', err);
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +72,7 @@ const CompanyAuth = ({ onAuthenticated }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="relative group">
           <label 
-            htmlFor="employeeCode" 
+            htmlFor="companyCode" 
             className="block text-sm font-medium text-n-3 mb-2 transition-colors group-focus-within:text-[#33FF57]"
           >
             Código de Empresa
@@ -65,9 +83,9 @@ const CompanyAuth = ({ onAuthenticated }) => {
             </div>
             <input
               type="text"
-              id="employeeCode"
-              value={employeeCode}
-              onChange={(e) => setEmployeeCode(e.target.value)}
+              id="companyCode"
+              value={companyCode}
+              onChange={(e) => setCompanyCode(e.target.value)}
               required
               className="w-full pl-12 pr-4 py-3 rounded-lg bg-n-7 text-n-1 border border-n-6 focus:outline-none focus:border-[#33FF57] transition-colors placeholder-n-4/50"
               placeholder="Ingresa el código de tu empresa"
@@ -173,6 +191,15 @@ const CompanyAuth = ({ onAuthenticated }) => {
         <p className="text-xs text-n-3">
           Acceso seguro con encriptación de extremo a extremo
         </p>
+      </div>
+
+      <div className="mt-4 text-n-3 text-sm">
+        <p className="mb-2">Códigos de prueba disponibles:</p>
+        <ul className="list-disc list-inside space-y-1">
+          <li>PRUEBA1 - Pago Semanal</li>
+          <li>PRUEBA2 - Pago Quincenal</li>
+          <li>PRUEBA3 - Pago Mensual</li>
+        </ul>
       </div>
     </div>
   );
