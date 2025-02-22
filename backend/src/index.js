@@ -26,11 +26,28 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    // Permitir solicitudes sin origen (como las de Postman)
+    if (!origin) {
+      return callback(null, true);
     }
+    
+    // Permitir localhost
+    if (origin.startsWith('http://localhost')) {
+      return callback(null, true);
+    }
+    
+    // Permitir dominios específicos
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Permitir cualquier subdominio de vercel.app que contenga fincentiva-feb21-2025
+    if (origin.includes('fincentiva-feb21-2025') && origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Rechazar otros orígenes
+    callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
