@@ -168,37 +168,23 @@ Me gustaría recibir más información sobre el proceso de solicitud.
       <div className="relative p-0.5 rounded-lg bg-gradient-to-r from-[#40E0D0] via-[#4DE8B2] to-[#3FD494] overflow-hidden max-w-[720px] mx-auto">
         <div className="relative bg-n-8 rounded-lg p-3">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {/* Product Info Column */}
-            <div className="bg-n-7 rounded-lg p-3">
+            {/* Product Info Column - Ajustado para móvil */}
+            <div className="bg-n-7 rounded-lg p-3 max-h-[500px] overflow-y-auto">
               <div className="flex flex-col gap-2">
                 {product.title === "Crédito en Efectivo" ? (
                   <div className="flex flex-col items-center">
-                    <div className="w-[120px] h-[120px] relative mb-4">
+                    <div className="relative w-24 h-24 mb-4">
                       {/* Círculo exterior animado */}
                       <div className="absolute inset-0 rounded-full border-4 border-[#40E0D0] animate-spin-slow"></div>
                       {/* Círculo interior con gradiente */}
                       <div className="absolute inset-2 rounded-full bg-gradient-to-br from-[#40E0D0] to-[#3FD494] flex items-center justify-center">
                         <div className="text-4xl">💰</div>
                       </div>
-                      {/* Partículas flotantes */}
-                      <div className="absolute inset-0">
-                        {[...Array(5)].map((_, i) => (
-                          <div
-                            key={i}
-                            className="absolute w-2 h-2 bg-[#40E0D0] rounded-full animate-float"
-                            style={{
-                              left: `${Math.random() * 100}%`,
-                              top: `${Math.random() * 100}%`,
-                              animationDelay: `${i * 0.5}s`
-                            }}
-                          ></div>
-                        ))}
-                      </div>
                     </div>
-                    <h2 className="text-2xl font-bold text-n-1 mb-2 text-center">
+                    <h2 className="text-xl md:text-2xl font-bold text-n-1 mb-2 text-center">
                       {product.title}
                     </h2>
-                    <div className="text-3xl font-bold text-[#33FF57] mb-4">
+                    <div className="text-2xl md:text-3xl font-bold text-[#33FF57] mb-4">
                       {formatCurrency(product.price)}
                     </div>
                     <div className="w-full space-y-3">
@@ -234,52 +220,54 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                   </div>
                 ) : (
                   <>
-                    <div className="aspect-square w-full max-w-[120px] mx-auto rounded-md overflow-hidden bg-n-6">
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                      <div className="w-full max-w-[120px] aspect-square rounded-md overflow-hidden bg-n-6">
+                        <img
+                          src={product.image}
+                          alt={product.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 text-center sm:text-left">
+                        <h2 className="text-lg font-bold text-n-1 mb-1.5">{product.title}</h2>
+                        <div className="flex items-baseline gap-2 mb-2 justify-center sm:justify-start">
+                          <span className="text-xl font-bold text-[#33FF57]">
+                            {formatCurrency(product.price)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-lg font-bold text-n-1 mb-1.5">{product.title}</h2>
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-xl font-bold text-[#33FF57]">
-                          {formatCurrency(product.price)}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-2">
-                        {product.rating && (
-                          <div className="text-n-3 text-xs">
-                            <span className="font-medium text-n-1">Calificación:</span> {product.rating}
-                          </div>
-                        )}
-                        {product.availability && (
-                          <div className="text-n-3 text-xs">
-                            <span className="font-medium text-n-1">Disponibilidad:</span> {product.availability}
-                          </div>
-                        )}
-                      </div>
-                      {product.features && product.features.length > 0 && (
-                        <div className="text-n-3">
-                          <h3 className="text-sm font-semibold text-n-1 mb-0.5">Características</h3>
-                          <ul className="list-disc list-inside space-y-0.5 text-xs">
-                            {product.features.map((feature, index) => (
-                              <li key={index}>{feature}</li>
-                            ))}
-                          </ul>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-2">
+                      {product.rating && (
+                        <div className="text-n-3 text-xs">
+                          <span className="font-medium text-n-1">Calificación:</span> {product.rating}
+                        </div>
+                      )}
+                      {product.availability && (
+                        <div className="text-n-3 text-xs">
+                          <span className="font-medium text-n-1">Disponibilidad:</span> {product.availability}
                         </div>
                       )}
                     </div>
+                    {product.features && product.features.length > 0 && (
+                      <div className="text-n-3">
+                        <h3 className="text-sm font-semibold text-n-1 mb-0.5">Características</h3>
+                        <ul className="list-disc list-inside space-y-0.5 text-xs">
+                          {product.features.map((feature, index) => (
+                            <li key={index}>{feature}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
             </div>
 
-            {/* Financing Options Column */}
+            {/* Financing Options Column - Ajustado para móvil */}
             <div className="flex flex-col h-full">
               <h2 className="text-lg font-bold text-center text-n-1 mb-2">Elige tu Plan de Financiamiento</h2>
-              <div className="flex flex-col gap-1.5 flex-grow">
+              <div className="flex flex-col gap-1.5 flex-grow max-h-[400px] overflow-y-auto">
                 {paymentOptions.map((option, index) => {
                   const isSelected = selectedPlan === option;
                   const exceeds = exceedsPaymentCapacity(option.paymentPerPeriod, option.periodLabel);
@@ -372,26 +360,27 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                 })}
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-between items-center mt-2 gap-1.5">
+              {/* Action Buttons - Ajustados para móvil */}
+              <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-2">
                 <Button
-                  className="px-3 py-1 text-xs bg-n-7 hover:bg-n-6 transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 text-sm bg-n-7 hover:bg-n-6 transition-colors"
                   onClick={onBack}
                 >
                   Regresar
                 </Button>
                 <Button
                   className={`
-                    px-3 py-1 text-xs bg-n-7 hover:bg-n-6 transition-colors
-                    ${!selectedPlan ? 'opacity-50 cursor-not-allowed' : ''}
+                    w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-[#33FF57] to-[#40E0D0] text-black font-medium
+                    ${!selectedPlan ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}
+                    transition-all duration-300
                   `}
                   disabled={!selectedPlan}
                   onClick={handlePlanSelection}
                 >
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center justify-center gap-1.5">
                     {selectedPlan ? (
                       <>
-                        Continuar con Plan Seleccionado
+                        Continuar
                         <svg 
                           className="w-4 h-4" 
                           fill="none" 

@@ -149,14 +149,14 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
 
   return (
     <Section id="product-link" className={showLoader ? 'hidden' : 'block'}>
-      <div className="container">
-        <div className="flex gap-8 items-stretch justify-center">
-          {/* Guía Visual Animada (Izquierda) */}
+      <div className="container px-4">
+        <div className="flex flex-col lg:flex-row gap-8 items-stretch justify-center">
+          {/* Guía Visual Animada (Izquierda) - Ajustada para móvil */}
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-[300px] flex flex-col gap-6"
+            className="w-full lg:w-[300px] flex flex-col gap-6"
           >
             <div className="flex-1 bg-n-8/50 rounded-xl p-6 border border-n-6">
               <h4 className="text-lg font-semibold mb-4 text-[#33FF57]">Guía Rápida</h4>
@@ -208,7 +208,8 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
               </div>
             </div>
 
-            <div className="bg-n-8/50 rounded-xl p-6 border border-n-6">
+            {/* Información Adicional - Visible solo en pantallas grandes */}
+            <div className="hidden lg:block bg-n-8/50 rounded-xl p-6 border border-n-6">
               <h4 className="text-lg font-semibold mb-4 text-[#33FF57]">¿Sabías que?</h4>
               <div className="space-y-3 text-sm text-n-3">
                 <p>• Puedes financiar cualquier producto elegible de las tiendas participantes</p>
@@ -218,33 +219,23 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
             </div>
           </motion.div>
 
-          {/* Formulario Principal */}
-          <div className="w-[40rem] flex">
+          {/* Formulario Principal - Ajustado para móvil */}
+          <div className="w-full lg:w-[40rem] flex">
             <div className="relative p-0.5 rounded-2xl bg-gradient-to-r from-[#40E0D0] via-[#4DE8B2] to-[#3FD494] overflow-hidden flex-1">
-              <div className="absolute inset-0">
-                <div className="absolute inset-0" 
-                  style={{
-                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                    transform: 'translateX(-100%)',
-                    animation: 'gradient-slide 3s linear infinite'
-                  }}
-                />
-              </div>
-
-              <div className="relative bg-[#0D1117] rounded-2xl p-8 h-full flex flex-col">
+              <div className="relative bg-[#0D1117] rounded-2xl p-4 sm:p-8 h-full flex flex-col">
                 <div className="flex-1">
-                  <div className="flex items-center justify-center mb-8">
+                  <div className="flex items-center justify-center mb-6 sm:mb-8">
                     <div className="relative">
-                      <FaLink className="text-[#40E0D0] text-4xl animate-pulse" />
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#33FF57] rounded-full animate-ping" />
+                      <FaLink className="text-[#40E0D0] text-3xl sm:text-4xl animate-pulse" />
+                      <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-[#33FF57] rounded-full animate-ping" />
                     </div>
                   </div>
                   
-                  <h3 className="h3 mb-6 text-center">Comienza tu Compra</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold mb-6 text-center">Comienza tu Compra</h3>
                   
-                  <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+                  <form onSubmit={handleSubmit} className="flex flex-col gap-6 sm:gap-8">
                     {/* Campo de Ingresos */}
-                <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 sm:gap-3">
                       <label htmlFor="income" className="text-n-4 text-sm">
                         ¿Cuánto ganas por {getPaymentFrequencyLabel()}?
                       </label>
@@ -258,67 +249,37 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
                           value={income}
                           onChange={(e) => handleNumberInput(e, setIncome)}
                           placeholder="0"
-                          className="w-full px-12 py-3 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors text-right pr-20"
+                          className="w-full h-12 px-12 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors text-right pr-20"
                           required
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-n-4 ml-2">
                           MXN
                         </span>
-                        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#33FF57] to-[#33FF57] opacity-0 group-focus-within:opacity-10 transition-opacity pointer-events-none"></div>
                       </div>
                     </div>
 
                     {/* Campo de Enlace del Producto */}
-                    <div className="flex flex-col gap-3">
-                  <label htmlFor="productLink" className="text-n-4 text-sm">
-                    Enlace del Producto
-                  </label>
+                    <div className="flex flex-col gap-2 sm:gap-3">
+                      <label htmlFor="productLink" className="text-n-4 text-sm">
+                        Enlace del Producto
+                      </label>
                       <div className="relative group">
-                  <input
-                    type="url"
-                    id="productLink"
-                    value={productLink}
-                    onChange={(e) => {
-                      setProductLink(e.target.value);
-                            setError("");
-                    }}
-                    placeholder="https://www.amazon.com.mx/producto..."
-                          className="w-full px-4 py-3 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors"
-                    required
-                    disabled={isSubmitting}
-                  />
-                        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#33FF57] to-[#33FF57] opacity-0 group-focus-within:opacity-10 transition-opacity pointer-events-none"></div>
+                        <input
+                          type="url"
+                          id="productLink"
+                          value={productLink}
+                          onChange={(e) => setProductLink(e.target.value)}
+                          placeholder="https://www.amazon.com.mx/..."
+                          className="w-full h-12 px-4 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors"
+                          required
+                        />
                       </div>
+                    </div>
 
-                      <div className="text-center text-sm text-gray-400 mt-6">
-                        <div className="mb-2">Aceptamos productos de:</div>
-                        <div className="flex justify-center items-center gap-4">
-                          <a 
-                            href="https://www.amazon.com.mx" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 hover:text-[#FF9900] transition-colors"
-                          >
-                            <span className="text-xl">🛍️</span>
-                            <span>Amazon</span>
-                          </a>
-                          <span>y</span>
-                          <a 
-                            href="https://www.mercadolibre.com.mx" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 hover:text-[#FFE600] transition-colors"
-                          >
-                            <span className="text-xl">🌟</span>
-                            <span>MercadoLibre</span>
-                          </a>
-                        </div>
-                      </div>
-                </div>
-
+                    {/* Información de Capacidad de Crédito */}
                     {maxCredit && (
-                      <div className="mt-6 p-3 bg-[#1A1F26] rounded-lg border border-[#2D3643]">
-                        <p className="text-[#40E0D0] font-medium">
+                      <div className="mt-4 p-4 bg-[#1A1F26] rounded-lg border border-[#2D3643]">
+                        <p className="text-[#40E0D0] font-medium text-sm sm:text-base">
                           Tu capacidad máxima de crédito es de {formatCurrency(maxCredit)}
                         </p>
                         <p className="text-xs mt-1 text-n-3">
@@ -327,21 +288,23 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
                       </div>
                     )}
 
+                    {/* Mensajes de Error */}
                     {error && (
-                      <div className="relative overflow-hidden rounded-lg mt-6">
+                      <div className="relative overflow-hidden rounded-lg mt-4">
                         <div className="absolute inset-0 bg-red-500/10 animate-pulse"></div>
-                        <div className="relative text-red-500 text-sm px-4 py-2">
+                        <div className="relative text-red-500 text-sm px-4 py-3">
                           {error}
                         </div>
                       </div>
                     )}
 
+                    {/* Botón de Envío */}
                     <button
-                  type="submit"
-                  disabled={isSubmitting || isLoading}
+                      type="submit"
+                      disabled={isSubmitting || isLoading}
                       className={`
                         relative overflow-hidden group
-                        w-full py-4 rounded-xl text-sm font-bold mt-8
+                        w-full h-12 sm:h-14 rounded-xl text-sm font-bold mt-6
                         bg-[#33FF57] text-black
                         transition-all duration-300
                         hover:bg-[#40ff63] hover:scale-[1.01]
@@ -357,9 +320,9 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
                         </div>
                       ) : (
                         <div className="flex items-center justify-center gap-2 text-black">
-                          <span className="tracking-wider">VER OPCIONES DE FINANCIAMIENTO</span>
+                          <span className="tracking-wider text-xs sm:text-sm">VER OPCIONES DE FINANCIAMIENTO</span>
                           <svg 
-                            className="w-5 h-5 transform transition-transform duration-300 group-hover:translate-x-1" 
+                            className="w-4 h-4 sm:w-5 sm:h-5 transform transition-transform duration-300 group-hover:translate-x-1" 
                             fill="none" 
                             stroke="currentColor" 
                             viewBox="0 0 24 24"
@@ -374,9 +337,19 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
                         </div>
                       )}
                     </button>
-              </form>
+                  </form>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Información Adicional - Visible solo en pantallas pequeñas */}
+          <div className="block lg:hidden bg-n-8/50 rounded-xl p-6 border border-n-6 mt-6">
+            <h4 className="text-lg font-semibold mb-4 text-[#33FF57]">¿Sabías que?</h4>
+            <div className="space-y-3 text-sm text-n-3">
+              <p>• Puedes financiar cualquier producto elegible de las tiendas participantes</p>
+              <p>• El monto máximo de financiamiento depende de tus ingresos</p>
+              <p>• Obtienes respuesta inmediata sobre tu capacidad de crédito</p>
             </div>
           </div>
         </div>
