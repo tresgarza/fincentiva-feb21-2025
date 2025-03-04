@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { getCompanies, getByCode } from '../services/api';
 import Button from './Button';
-import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt, FaCalendarAlt } from 'react-icons/fa';
+import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt, FaCalendarAlt, FaUser } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Typewriter from 'typewriter-effect';
 
 const CompanyAuth = ({ onAuthenticated }) => {
   const [employeeCode, setEmployeeCode] = useState('');
+  const [paymentFrequency, setPaymentFrequency] = useState('monthly');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [paymentFrequency, setPaymentFrequency] = useState('monthly');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -20,9 +20,8 @@ const CompanyAuth = ({ onAuthenticated }) => {
 
     try {
       const companyData = await getByCode(employeeCode);
-      // Agregar la frecuencia de pago seleccionada a los datos de la empresa
-      // y la información del usuario
-      const companyWithFrequency = {
+      // Agregar la frecuencia de pago seleccionada y datos personales a los datos de la empresa
+      const companyWithUserData = {
         ...companyData,
         payment_frequency: paymentFrequency,
         user: {
@@ -30,7 +29,7 @@ const CompanyAuth = ({ onAuthenticated }) => {
           lastName
         }
       };
-      onAuthenticated(companyWithFrequency);
+      onAuthenticated(companyWithUserData);
     } catch (error) {
       setError(error.message || 'Error al verificar credenciales');
       console.error('Authentication error:', error);
@@ -127,7 +126,7 @@ const CompanyAuth = ({ onAuthenticated }) => {
           </h2>
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Campos para nombre y apellido */}
+            {/* Campo de nombre */}
             <div className="relative group">
               <label 
                 htmlFor="firstName" 
@@ -137,7 +136,7 @@ const CompanyAuth = ({ onAuthenticated }) => {
               </label>
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                  <FaUserTie className="text-n-4 group-focus-within:text-[#33FF57] transition-colors" />
+                  <FaUser className="text-n-4 group-focus-within:text-[#33FF57] transition-colors" />
                 </div>
                 <input
                   type="text"
@@ -151,7 +150,8 @@ const CompanyAuth = ({ onAuthenticated }) => {
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#33FF57] to-[#33FF57] opacity-0 group-focus-within:opacity-10 transition-opacity pointer-events-none"></div>
               </div>
             </div>
-            
+
+            {/* Campo de apellido */}
             <div className="relative group">
               <label 
                 htmlFor="lastName" 
@@ -161,7 +161,7 @@ const CompanyAuth = ({ onAuthenticated }) => {
               </label>
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                  <FaUserTie className="text-n-4 group-focus-within:text-[#33FF57] transition-colors" />
+                  <FaUser className="text-n-4 group-focus-within:text-[#33FF57] transition-colors" />
                 </div>
                 <input
                   type="text"

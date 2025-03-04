@@ -3,13 +3,23 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 import { HambugerMenu } from "./design/Header";
 import MenuSvg from "../assets/svg/MenuSvg";
-import { FaSignOutAlt } from 'react-icons/fa';
-import { logout } from '../utils/auth';
+import { FaSignOutAlt, FaUser } from "react-icons/fa";
 
 const Header = () => {
   const pathname = useLocation();
   const navigate = useNavigate();
   const [openNavigation, setOpenNavigation] = useState(false);
+
+  // Obtener datos del usuario de localStorage
+  const getUserData = () => {
+    const companyData = localStorage.getItem('companyData');
+    if (companyData) {
+      return JSON.parse(companyData);
+    }
+    return null;
+  };
+
+  const userData = getUserData();
 
   const toggleNavigation = () => {
     if (openNavigation) {
@@ -43,8 +53,10 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
+    // Eliminar datos de la empresa de localStorage
+    localStorage.removeItem('companyData');
+    // Redirigir a la página de login
+    navigate('/login', { replace: true });
   };
 
   const navigation = [
@@ -71,10 +83,10 @@ const Header = () => {
         openNavigation ? "bg-n-8" : "bg-n-8/90 backdrop-blur-sm"
       }`}
     >
-      <div className="flex items-center justify-between px-4 lg:px-6 max-lg:py-2 h-[50px]">
+      <div className="flex items-center px-4 lg:px-6 max-lg:py-2 h-[50px]">
         <a 
           href="#hero" 
-          className="block w-[10rem]"
+          className="block w-[10rem] mr-12"
           onClick={handleClick}
         >
           <h1 className="text-xl font-bold text-white">FINCENTIVA</h1>
@@ -110,13 +122,25 @@ const Header = () => {
           <HambugerMenu />
         </nav>
 
-        <div className="flex items-center">
+        {/* User Info and Logout Button */}
+        <div className="ml-auto flex items-center">
+          {userData && (
+            <div className="hidden lg:flex items-center mr-4">
+              <div className="bg-n-7 rounded-full p-1.5 mr-2">
+                <FaUser className="text-[#33FF57]" />
+              </div>
+              <span className="text-n-1 text-sm">
+                {userData.user?.firstName || ''} {userData.user?.lastName || ''}
+              </span>
+            </div>
+          )}
+          
           <button
             onClick={handleLogout}
-            className="flex items-center text-sm text-white bg-[#33FF57]/20 hover:bg-[#33FF57]/30 transition-colors px-3 py-1.5 rounded-lg mr-4"
+            className="flex items-center bg-n-7 hover:bg-n-6 text-n-1 px-3 py-1.5 rounded-lg transition-colors mr-4 lg:mr-0"
           >
-            <FaSignOutAlt className="mr-1.5" />
-            <span className="hidden sm:inline">Cerrar Sesión</span>
+            <FaSignOutAlt className="mr-2 text-[#33FF57]" />
+            <span className="text-sm hidden lg:inline-block">Cerrar Sesión</span>
           </button>
           
           <button

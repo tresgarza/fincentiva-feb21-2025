@@ -1,6 +1,6 @@
+import { useEffect } from 'react';
 import CompanyAuth from '../components/CompanyAuth';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import logoCartotec from '../assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from '../assets/logos/Logo_empresa_cadtoner.png';
 import logoEtimex from '../assets/logos/logo_empresa_etimex.png';
@@ -14,54 +14,24 @@ import logoVallealto from '../assets/logos/logo_empresa_vallealto.png';
 
 const Login = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [redirecting, setRedirecting] = useState(false);
-  
-  // Verificar si ya hay una sesión activa
+
+  // Verificar si ya hay una sesión activa al cargar el componente
   useEffect(() => {
-    // Evitar múltiples redirecciones
-    if (redirecting) return;
-    
     const companyData = localStorage.getItem('companyData');
+    
+    // Si ya hay una sesión activa, redirigir al inicio
     if (companyData) {
-      setRedirecting(true);
-      // Si ya hay una sesión, redirigir a inicio
-      const from = location.state?.from?.pathname || '/inicio';
-      navigate(from, { replace: true });
+      navigate('/inicio', { replace: true });
     }
-  }, [navigate, location, redirecting]);
+  }, [navigate]);
 
   const handleAuthenticated = (companyData) => {
-    // Evitar múltiples redirecciones
-    if (redirecting) return;
-    setRedirecting(true);
-    
-    // Guardar los datos de la empresa y usuario en localStorage
+    // Guardar los datos de la empresa en localStorage
     localStorage.setItem('companyData', JSON.stringify(companyData));
     
-    // Crear timestamp de inicio de sesión
-    const sessionData = {
-      timestamp: new Date().toISOString(),
-      userId: `${companyData.user.firstName}_${companyData.user.lastName}`.toLowerCase()
-    };
-    localStorage.setItem('sessionData', JSON.stringify(sessionData));
-    
-    // Redirigir a la página de inicio o a la página que intentaba acceder
-    const from = location.state?.from?.pathname || '/inicio';
-    navigate(from, { replace: true });
+    // Redirigir a la página de inicio
+    navigate('/inicio', { replace: true });
   };
-
-  // Si ya estamos redirigiendo, no mostrar nada para evitar parpadeos
-  if (redirecting) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-n-8">
-        <div className="text-center">
-          <div className="inline-block w-8 h-8 border-4 border-n-1 border-t-[#33FF57] rounded-full animate-spin"></div>
-          <p className="mt-2 text-n-1">Iniciando sesión...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-n-8">
