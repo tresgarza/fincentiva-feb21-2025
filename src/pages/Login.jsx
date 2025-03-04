@@ -1,5 +1,6 @@
 import CompanyAuth from '../components/CompanyAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import logoCartotec from '../assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from '../assets/logos/Logo_empresa_cadtoner.png';
 import logoEtimex from '../assets/logos/logo_empresa_etimex.png';
@@ -13,12 +14,32 @@ import logoVallealto from '../assets/logos/logo_empresa_vallealto.png';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Verificar si ya hay una sesión activa
+  useEffect(() => {
+    const companyData = localStorage.getItem('companyData');
+    if (companyData) {
+      // Si ya hay una sesión, redirigir a inicio
+      const from = location.state?.from?.pathname || '/inicio';
+      navigate(from, { replace: true });
+    }
+  }, [navigate, location]);
 
   const handleAuthenticated = (companyData) => {
-    // Guardar los datos de la empresa en localStorage o en un estado global
+    // Guardar los datos de la empresa y usuario en localStorage
     localStorage.setItem('companyData', JSON.stringify(companyData));
-    // Redirigir a la página de inicio
-    navigate('/inicio');
+    
+    // Crear timestamp de inicio de sesión
+    const sessionData = {
+      timestamp: new Date().toISOString(),
+      userId: `${companyData.user.firstName}_${companyData.user.lastName}`.toLowerCase()
+    };
+    localStorage.setItem('sessionData', JSON.stringify(sessionData));
+    
+    // Redirigir a la página de inicio o a la página que intentaba acceder
+    const from = location.state?.from?.pathname || '/inicio';
+    navigate(from, { replace: true });
   };
 
   return (

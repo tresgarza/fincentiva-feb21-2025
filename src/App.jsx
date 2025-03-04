@@ -10,7 +10,7 @@ import FinancingOptions from "./components/FinancingOptions";
 import CompanyAuth from "./components/CompanyAuth";
 import { getProductInfo } from "./services/api";
 import Typewriter from 'typewriter-effect';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import logoCartotec from './assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from './assets/logos/Logo_empresa_cadtoner.png';
@@ -25,6 +25,20 @@ import logoVallealto from './assets/logos/logo_empresa_vallealto.png';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Plans from './pages/Plans';
+import { isAuthenticated } from './utils/auth';
+
+// Componente para proteger rutas
+const ProtectedRoute = ({ children }) => {
+  const location = useLocation();
+  
+  // Verificar si el usuario está autenticado usando la utilidad
+  if (!isAuthenticated()) {
+    // Si no hay datos de autenticación o la sesión expiró, redirigir al login
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  
+  return children;
+};
 
 const App = () => {
   const [productData, setProductData] = useState(null);
@@ -188,11 +202,15 @@ const router = createBrowserRouter([
   },
   {
     path: "/inicio",
-    element: <Home />
+    element: <ProtectedRoute><Home /></ProtectedRoute>
   },
   {
     path: "/planes",
-    element: <Plans />
+    element: <ProtectedRoute><Plans /></ProtectedRoute>
+  },
+  {
+    path: "*",
+    element: <Navigate to="/login" replace />
   }
 ], {
   future: {
