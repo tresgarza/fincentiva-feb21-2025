@@ -1,97 +1,125 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './api';
+import { validateAndCleanSupabaseKey, getCleanApiKey } from '../utils/validateApiKey';
 
 // Log para depuración - mostrando los primeros y últimos caracteres para verificar sin exponer la clave completa
 console.log('Supabase URL:', SUPABASE_URL);
-if (SUPABASE_ANON_KEY) {
-  const keyLength = SUPABASE_ANON_KEY.length;
-  console.log('Supabase Key length:', keyLength);
-  console.log('Key prefix:', SUPABASE_ANON_KEY.substring(0, 5) + '...');
-  console.log('Key suffix:', '...' + SUPABASE_ANON_KEY.substring(keyLength - 5, keyLength));
-} else {
-  console.error('Supabase key is undefined or empty');
+
+// Validar y limpiar la clave API
+const keyValidation = validateAndCleanSupabaseKey(SUPABASE_ANON_KEY);
+const cleanedKey = keyValidation.cleanedKey;
+
+if (!keyValidation.isValid) {
+  console.error('ADVERTENCIA - PROBLEMAS CON LA CLAVE API DE SUPABASE:');
+  keyValidation.messages.forEach(msg => console.error(`- ${msg}`));
+} else if (keyValidation.messages.length > 0) {
+  console.warn('Observaciones sobre la clave API de Supabase:');
+  keyValidation.messages.forEach(msg => console.warn(`- ${msg}`));
 }
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('Missing Supabase credentials. Please check your environment variables.');
+// Mostrar información de diagnóstico si está disponible
+if (keyValidation.diagnostics.jwt) {
+  console.log('Información de la clave JWT:', keyValidation.diagnostics.jwt);
 }
 
-// Crear un cliente básico sin configuraciones adicionales
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Si la clave fue limpiada, mostrar que se está usando la versión limpia
+if (cleanedKey !== SUPABASE_ANON_KEY) {
+  console.log('Se utilizará una versión limpia de la clave API (espacios en blanco eliminados)');
+}
 
-// Probar la conexión de inmediato con headers explícitos
-(async () => {
-  try {
-    console.log('Intentando conexión inicial con Supabase usando fetch directo...');
-    
-    // Usar fetch directamente para probar la conexión
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/product_financing_simulations?select=count`,
-      {
-        method: 'GET',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    
-    if (!response.ok) {
-      console.error('Error al probar la conexión directa con Supabase:', response.status);
-      console.error('Mensaje:', await response.text());
-    } else {
-      const data = await response.json();
-      console.log('Conexión directa con Supabase exitosa:', data);
-      
-      // Si la conexión directa funciona, intentar con el cliente de Supabase
-      console.log('Probando ahora con el cliente de Supabase...');
-      const { data: supabaseData, error } = await supabase
-        .from('product_financing_simulations')
-        .select('count', { count: 'exact', head: true });
-      
-      if (error) {
-        console.error('Error al probar con el cliente de Supabase:', error);
-      } else {
-        console.log('Conexión con cliente de Supabase exitosa:', supabaseData);
-      }
-    }
-  } catch (err) {
-    console.error('Excepción al probar la conexión con Supabase:', err);
-  }
-})();
+if (!SUPABASE_URL || !cleanedKey) {
+  console.error('Credenciales de Supabase faltantes. Verifique sus variables de entorno.');
+}
 
-// Crear una función auxiliar para realizar operaciones con fetch directo
-// como alternativa al cliente de Supabase si sigue fallando
+// Crear cliente Supabase con la clave limpia
+const supabase = createClient(SUPABASE_URL, cleanedKey);
+
+// Función mejorada para realizar solicitudes directas a Supabase
 export const supabaseFetch = async (endpoint, options = {}) => {
-  const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
-  const headers = {
-    'apikey': SUPABASE_ANON_KEY,
-    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-    'Content-Type': 'application/json',
-    ...options.headers
-  };
-  
   try {
+    // Asegurarse de que la URL no tenga barras duplicadas
+    const baseUrl = SUPABASE_URL.endsWith('/') 
+      ? SUPABASE_URL.slice(0, -1) 
+      : SUPABASE_URL;
+    
+    const url = `${baseUrl}/${endpoint.startsWith('/') ? endpoint.slice(1) : endpoint}`;
+    
+    // Usar la clave limpia para los headers
+    const headers = {
+      'apikey': cleanedKey,
+      'Authorization': `Bearer ${cleanedKey}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...(options.headers || {})
+    };
+    
+    console.log(`Realizando fetch directo a: ${url}`);
+    console.log('Headers configurados correctamente:', 
+      Object.keys(headers).map(k => `${k}: ${k === 'apikey' || k === 'Authorization' ? '[HIDDEN]' : 'presente'}`));
+    
     const response = await fetch(url, {
       ...options,
       headers
     });
     
+    console.log(`Respuesta de fetch directo: Status ${response.status}`);
+    
     if (!response.ok) {
-      return { 
-        error: { 
-          message: `Error ${response.status}: ${await response.text()}`,
-          status: response.status 
-        } 
+      let errorText = '';
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        errorText = 'No se pudo obtener el texto del error';
+      }
+      
+      throw {
+        status: response.status,
+        message: `Error ${response.status}: ${errorText}`
       };
     }
     
     const data = await response.json();
-    return { data };
+    return { data, error: null };
   } catch (error) {
-    return { error: { message: error.message } };
+    console.error('Error en supabaseFetch:', error);
+    return { 
+      data: null, 
+      error: {
+        status: error.status || 500,
+        message: error.message || 'Error desconocido en fetch directo'
+      } 
+    };
   }
 };
 
-export { supabase }; 
+// Probar la conexión de inmediato
+(async () => {
+  try {
+    console.log('Intentando conexión inicial con Supabase usando fetch directo...');
+    
+    // Usar fetch directamente para probar la conexión
+    const testResult = await supabaseFetch('rest/v1/product_financing_simulations?limit=1');
+    
+    if (testResult.error) {
+      console.error('Error en prueba inicial:', testResult.error);
+    } else {
+      console.log('Conexión exitosa con fetch directo:', testResult.data);
+    }
+    
+    // También probar con el cliente de Supabase
+    const { data, error } = await supabase
+      .from('product_financing_simulations')
+      .select('*')
+      .limit(1);
+      
+    if (error) {
+      console.error('Error con cliente Supabase:', error);
+    } else {
+      console.log('Conexión exitosa con cliente Supabase:', data);
+    }
+  } catch (e) {
+    console.error('Error en prueba de conexión inicial:', e);
+  }
+})();
+
+export default supabase; 
