@@ -1,22 +1,12 @@
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 import { HambugerMenu } from "./design/Header";
 import MenuSvg from "../assets/svg/MenuSvg";
-import { FaSignOutAlt, FaUser } from "react-icons/fa";
-import { getAuthUser, clearAuth } from "../utils/authUtils";
 
 const Header = () => {
   const pathname = useLocation();
-  const navigate = useNavigate();
   const [openNavigation, setOpenNavigation] = useState(false);
-  const [userData, setUserData] = useState(null);
-
-  // Obtener datos del usuario al cargar el componente
-  useEffect(() => {
-    const user = getAuthUser();
-    setUserData(user);
-  }, []);
 
   const toggleNavigation = () => {
     if (openNavigation) {
@@ -47,13 +37,6 @@ const Header = () => {
         });
       }
     }
-  };
-
-  const handleLogout = () => {
-    // Eliminar datos de la empresa de localStorage usando la utilidad
-    clearAuth();
-    // Redirigir a la página de login
-    navigate('/login', { replace: true });
   };
 
   const navigation = [
@@ -119,34 +102,12 @@ const Header = () => {
           <HambugerMenu />
         </nav>
 
-        {/* User Info and Logout Button */}
-        <div className="ml-auto flex items-center">
-          {userData && (
-            <div className="hidden lg:flex items-center mr-4">
-              <div className="bg-n-7 rounded-full p-1.5 mr-2">
-                <FaUser className="text-[#33FF57]" />
-              </div>
-              <span className="text-n-1 text-sm">
-                {userData.user?.firstName || ''} {userData.user?.lastName || ''}
-              </span>
-            </div>
-          )}
-          
-          <button
-            onClick={handleLogout}
-            className="flex items-center bg-n-7 hover:bg-n-6 text-n-1 px-3 py-1.5 rounded-lg transition-colors mr-4 lg:mr-0"
-          >
-            <FaSignOutAlt className="mr-2 text-[#33FF57]" />
-            <span className="text-sm hidden lg:inline-block">Cerrar Sesión</span>
-          </button>
-          
-          <button
-            onClick={toggleNavigation}
-            className="lg:hidden"
-          >
-            <MenuSvg openNavigation={openNavigation} />
-          </button>
-        </div>
+        <button
+          onClick={toggleNavigation}
+          className="ml-auto lg:hidden"
+        >
+          <MenuSvg openNavigation={openNavigation} />
+        </button>
       </div>
     </div>
   );

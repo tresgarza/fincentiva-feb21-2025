@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { repairSession } from "./utils/authUtils";
 import ButtonGradient from "./assets/svg/ButtonGradient";
 import Benefits from "./components/Benefits";
 import Footer from "./components/Footer";
@@ -9,7 +8,6 @@ import ProductLinkForm from "./components/ProductLinkForm";
 import CreditAmountForm from "./components/CreditAmountForm";
 import FinancingOptions from "./components/FinancingOptions";
 import CompanyAuth from "./components/CompanyAuth";
-import ProtectedRoute from "./components/ProtectedRoute";
 import { getProductInfo } from "./services/api";
 import Typewriter from 'typewriter-effect';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
@@ -27,9 +25,6 @@ import logoVallealto from './assets/logos/logo_empresa_vallealto.png';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Plans from './pages/Plans';
-
-// Intentar reparar la sesión al cargar la aplicación
-repairSession();
 
 const App = () => {
   const [productData, setProductData] = useState(null);
@@ -193,16 +188,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/inicio",
-    element: <ProtectedRoute><Home /></ProtectedRoute>
+    element: <Home />
   },
   {
     path: "/planes",
-    element: <ProtectedRoute><Plans /></ProtectedRoute>
-  },
-  {
-    // Ruta para cualquier path no definido - redirige a login si no hay sesión o a inicio si hay sesión
-    path: "*",
-    element: <Navigate to="/login" replace />
+    element: <Plans />
   }
 ], {
   future: {
@@ -213,11 +203,6 @@ const router = createBrowserRouter([
 
 // Componente principal que proporciona el enrutador
 const AppWrapper = () => {
-  // Asegurarse de que cualquier sesión corrupta se limpie al iniciar la aplicación
-  useEffect(() => {
-    repairSession();
-  }, []);
-
   return <RouterProvider router={router} />;
 };
 
