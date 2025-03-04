@@ -19,15 +19,13 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 // Crear el cliente con configuración para evitar errores de CORS y autenticación
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    persistSession: false, // No persistir sesión para uso anónimo
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-    flowType: 'implicit'
+    persistSession: true, // Permitir persistencia de sesión para usuarios anónimos
+    autoRefreshToken: true,
+    detectSessionInUrl: false
   },
   global: {
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      'Content-Type': 'application/json'
     },
   },
   realtime: {
