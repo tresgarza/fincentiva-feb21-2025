@@ -26,24 +26,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   db: {
     schema: 'public'
   },
-  global: {
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Client-Info': 'supabase-js/2.x'
-    },
-    fetch: (url, options) => {
-      // Log para depuración
-      console.log('Supabase fetch request:', url);
-      console.log('Supabase fetch options:', JSON.stringify({
-        method: options.method,
-        headers: options.headers
-      }, null, 2));
-      return fetch(url, {
-        ...options,
-        credentials: 'same-origin'
-      });
-    }
-  },
   realtime: {
     timeout: 30000
   }
