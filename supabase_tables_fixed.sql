@@ -49,7 +49,7 @@ CREATE INDEX IF NOT EXISTS cash_request_status_idx ON cash_request_simulations(s
 ALTER TABLE product_financing_simulations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cash_request_simulations ENABLE ROW LEVEL SECURITY;
 
--- Crear políticas para permitir todas las operaciones (puedes ajustar según tus necesidades)
+-- Crear políticas para permitir todas las operaciones para usuarios autenticados
 CREATE POLICY "Allow all operations for authenticated users on product simulations"
 ON product_financing_simulations
 FOR ALL
@@ -61,5 +61,44 @@ CREATE POLICY "Allow all operations for authenticated users on cash simulations"
 ON cash_request_simulations
 FOR ALL
 TO authenticated
+USING (true)
+WITH CHECK (true);
+
+-- Agregar políticas que permiten a usuarios anónimos (no autenticados) insertar datos
+CREATE POLICY "Allow inserts for anon users on product simulations"
+ON product_financing_simulations
+FOR INSERT
+TO anon
+WITH CHECK (true);
+
+CREATE POLICY "Allow select for anon users on product simulations"
+ON product_financing_simulations
+FOR SELECT
+TO anon
+USING (true);
+
+CREATE POLICY "Allow update for anon users on product simulations"
+ON product_financing_simulations
+FOR UPDATE
+TO anon
+USING (true)
+WITH CHECK (true);
+
+CREATE POLICY "Allow inserts for anon users on cash simulations"
+ON cash_request_simulations
+FOR INSERT
+TO anon
+WITH CHECK (true);
+
+CREATE POLICY "Allow select for anon users on cash simulations"
+ON cash_request_simulations
+FOR SELECT
+TO anon
+USING (true);
+
+CREATE POLICY "Allow update for anon users on cash simulations"
+ON cash_request_simulations
+FOR UPDATE
+TO anon
 USING (true)
 WITH CHECK (true); 

@@ -128,11 +128,22 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
       const result = await saveProductFinancingSimulation(simulationData);
       
       if (result.success) {
+        console.log('Simulación guardada exitosamente con ID:', result.data[0].id);
         // Pasar el ID de la simulación para actualizar después con los planes
         await onSubmit(productLink, parseFloat(income), monthlyIncome, result.data[0].id);
       } else {
-        // Si hay un error al guardar, continuamos con la simulación pero sin el ID
-        await onSubmit(productLink, parseFloat(income), monthlyIncome);
+        // Mostrar el error si es relacionado con Supabase
+        if (result.error) {
+          const errorMessage = result.error.message || 'Error al guardar la simulación';
+          console.error('Error detallado:', result.error);
+          setError(`Error al guardar: ${errorMessage}`);
+          
+          // A pesar del error, continuamos con la simulación pero sin el ID
+          await onSubmit(productLink, parseFloat(income), monthlyIncome);
+        } else {
+          // Si hay un error al guardar, continuamos con la simulación pero sin el ID
+          await onSubmit(productLink, parseFloat(income), monthlyIncome);
+        }
       }
     } catch (err) {
       setError(err.message);
