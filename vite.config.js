@@ -13,12 +13,4 @@ export default defineConfig({
       },
     },
   },
-  optimizeDeps: {
-    include: ['@supabase/supabase-js']
-  },
-  build: {
-    commonjsOptions: {
-      include: [/node_modules/]
-    }
-  }
 })

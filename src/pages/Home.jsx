@@ -6,7 +6,6 @@ import Benefits from "../components/Benefits";
 import Footer from "../components/Footer";
 import ButtonGradient from "../assets/svg/ButtonGradient";
 import { getProductInfo } from "../services/api";
-import { saveProductFinancingSimulation } from "../services/simulationService";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -18,7 +17,6 @@ const Home = () => {
   const [activeForm, setActiveForm] = useState('product');
   const [monthlyIncome, setMonthlyIncome] = useState(null);
   const [showLoader, setShowLoader] = useState(false);
-  const [currentSimulationId, setCurrentSimulationId] = useState(null);
 
   useEffect(() => {
     // Verificar autenticación al cargar la página
@@ -30,37 +28,21 @@ const Home = () => {
     }
   }, [navigate]);
 
-  const handleProductSubmit = async (productLink, income, monthlyIncome, simulationId) => {
+  const handleProductSubmit = async (productLink, income, monthlyIncome) => {
     setIsLoading(true);
     setShowLoader(true);
     setError(null);
-    
-    if (simulationId) {
-      setCurrentSimulationId(simulationId);
-    }
     
     try {
       const data = await getProductInfo(productLink);
       setProductData(data);
       setMonthlyIncome(income);
-      
-      // Si tenemos un ID de simulación, actualizar los datos del producto en Supabase
-      if (simulationId) {
-        await saveProductFinancingSimulation({
-          id: simulationId,
-          product_name: data.title || '',
-          product_price: data.price || 0
-        });
-      }
-      
       await new Promise(resolve => setTimeout(resolve, 1500));
       navigate('/planes', { 
         state: { 
           productData: data, 
           monthlyIncome: income,
-          companyData: companyData,
-          simulationId: simulationId,
-          simulationType: 'product'
+          companyData: companyData 
         } 
       });
     } catch (err) {
@@ -72,14 +54,10 @@ const Home = () => {
     }
   };
 
-  const handleAmountSubmit = async (amount, income, simulationId) => {
+  const handleAmountSubmit = async (amount, income) => {
     setIsLoading(true);
     setShowLoader(true);
     setError(null);
-    
-    if (simulationId) {
-      setCurrentSimulationId(simulationId);
-    }
     
     try {
       setMonthlyIncome(income);
@@ -93,9 +71,7 @@ const Home = () => {
         state: { 
           productData: simulatedProduct, 
           monthlyIncome: income,
-          companyData: companyData,
-          simulationId: simulationId,
-          simulationType: 'cash'
+          companyData: companyData 
         } 
       });
     } catch (err) {

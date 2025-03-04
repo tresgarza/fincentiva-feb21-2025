@@ -8,7 +8,7 @@ import ButtonGradient from '../assets/svg/ButtonGradient';
 const Plans = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { productData, monthlyIncome, companyData, simulationId, simulationType } = location.state || {};
+  const { productData, monthlyIncome, companyData } = location.state || {};
 
   useEffect(() => {
     // Verificar que tengamos todos los datos necesarios
@@ -40,8 +40,6 @@ const Plans = () => {
           onSelectPlan={handlePlanSelection}
           onBack={handleBack}
           onLoaded={() => {}}
-          simulationId={simulationId}
-          simulationType={simulationType}
         />
       </div>
       <Footer />

@@ -26,7 +26,6 @@ import logoVallealto from './assets/logos/logo_empresa_vallealto.png';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Plans from './pages/Plans';
-import SupabaseKeyTester from './components/SupabaseKeyTester';
 
 const App = () => {
   const [productData, setProductData] = useState(null);
@@ -210,15 +209,7 @@ const router = createBrowserRouter([
 
 // Componente principal que proporciona el enrutador
 const AppWrapper = () => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  return (
-    <>
-      <RouterProvider router={router} />
-      {/* Incluir el depurador de Supabase (solo visible en desarrollo) */}
-      {isDevelopment && <SupabaseKeyTester />}
-    </>
-  );
+  return <RouterProvider router={router} />;
 };
 
 export default AppWrapper;

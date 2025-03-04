@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import Button from "./Button";
 import { API_URL } from '../config/api';
-import { updateProductFinancingWithSelectedPlan, updateCashRequestWithSelectedPlan } from '../services/simulationService';
+import { saveProductSimulation, saveCashRequest, saveSelectedPlan } from '../services/supabaseServices';
 
-const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded, simulationId, simulationType }) => {
+const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) => {
   const [paymentOptions, setPaymentOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [savingSelection, setSavingSelection] = useState(false);
+  const [simulationId, setSimulationId] = useState(null);
+  const [isSavingPlan, setIsSavingPlan] = useState(false);
 
   // Calcular el pago máximo por periodo (25% del ingreso por periodo)
   const calculateMaxPaymentPerPeriod = () => {
@@ -89,6 +90,10 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded, si
 
         const data = await response.json();
         setPaymentOptions(data);
+        
+        // Guardar la simulación en Supabase
+        await saveSimulation(data);
+        
         // Llamamos a onLoaded cuando los planes estén listos
         onLoaded?.();
       } catch (err) {
@@ -103,6 +108,55 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded, si
 
     calculatePayments();
   }, [product, company, onLoaded]);
+
+  // Función para guardar la simulación en Supabase según el tipo
+  const saveSimulation = async (plans) => {
+    try {
+      // Obtener datos del usuario desde localStorage
+      const userData = company.user_data || {};
+      
+      // Determinar si es una simulación de producto o una solicitud de efectivo
+      const isProductSimulation = product.title !== "Crédito en Efectivo";
+      
+      // Datos comunes para ambos tipos de simulación
+      const commonData = {
+        user_first_name: userData.firstName || '',
+        user_last_name: userData.lastName || '',
+        company_id: company.id,
+        company_name: company.name,
+        company_code: company.code,
+        user_income: parseFloat(company.monthly_income),
+        payment_frequency: company.payment_frequency,
+        monthly_income: parseFloat(company.monthly_income),
+        recommended_plans: plans
+      };
+      
+      let result;
+      
+      if (isProductSimulation) {
+        // Simulación de producto
+        result = await saveProductSimulation({
+          ...commonData,
+          product_url: product.url || '',
+          product_title: product.title,
+          product_price: parseFloat(product.price)
+        });
+      } else {
+        // Solicitud de efectivo
+        result = await saveCashRequest({
+          ...commonData,
+          requested_amount: parseFloat(product.price)
+        });
+      }
+      
+      if (result.success && result.data && result.data.length > 0) {
+        setSimulationId(result.data[0].id);
+      }
+    } catch (error) {
+      console.error('Error al guardar la simulación:', error);
+      // No mostramos el error al usuario para no interrumpir la experiencia
+    }
+  };
 
   if (isLoading) {
     return (
@@ -138,20 +192,27 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded, si
   };
 
   const handlePlanSelection = async () => {
-    if (!selectedPlan) return;
+    if (!selectedPlan || !simulationId || isSavingPlan) return;
     
-    setSavingSelection(true);
+    setIsSavingPlan(true);
     
     try {
-      // Guardar la selección del plan en Supabase
-      if (simulationId) {
-        if (simulationType === 'product') {
-          await updateProductFinancingWithSelectedPlan(simulationId, selectedPlan.periods.toString());
-        } else if (simulationType === 'cash') {
-          await updateCashRequestWithSelectedPlan(simulationId, selectedPlan.periods.toString());
-        }
-      }
+      // Determine simulation type
+      const simulationType = product.title === "Crédito en Efectivo" ? 'cash' : 'product';
       
+      // Save selected plan to Supabase
+      const planData = {
+        simulation_id: simulationId,
+        simulation_type: simulationType,
+        periods: selectedPlan.periods,
+        period_label: selectedPlan.periodLabel,
+        payment_per_period: selectedPlan.paymentPerPeriod,
+        total_payment: selectedPlan.totalPayment,
+        interest_rate: selectedPlan.interestRate
+      };
+      
+      await saveSelectedPlan(planData);
+
       // Construir el mensaje con la información del plan
       const message = `¡Hola! 👋
 
@@ -177,9 +238,10 @@ Me gustaría recibir más información sobre el proceso de solicitud.
       // Redirigir a WhatsApp
       window.open(`https://wa.me/5218116364522?text=${encodedMessage}`, '_blank');
     } catch (error) {
-      console.error('Error al guardar la selección del plan:', error);
+      console.error('Error al guardar el plan seleccionado:', error);
+      // No interrumpimos la experiencia del usuario si hay un error
     } finally {
-      setSavingSelection(false);
+      setIsSavingPlan(false);
     }
   };
 
@@ -397,39 +459,19 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                 <Button
                   className="px-3 py-1 text-xs bg-n-7 hover:bg-n-6 transition-colors"
                   onClick={onBack}
-                  disabled={savingSelection}
                 >
                   Regresar
                 </Button>
                 <Button
                   className={`
                     px-3 py-1 text-xs bg-n-7 hover:bg-n-6 transition-colors
-                    ${(!selectedPlan || savingSelection) ? 'opacity-50 cursor-not-allowed' : ''}
+                    ${!selectedPlan ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
-                  disabled={!selectedPlan || savingSelection}
+                  disabled={!selectedPlan}
                   onClick={handlePlanSelection}
                 >
                   <span className="flex items-center gap-1.5">
-                    {savingSelection ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4 mr-1" viewBox="0 0 24 24">
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                        Procesando...
-                      </>
-                    ) : selectedPlan ? (
+                    {selectedPlan ? (
                       <>
                         Continuar con Plan Seleccionado
                         <svg 

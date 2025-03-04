@@ -4,7 +4,6 @@ import Section from "./Section";
 import { FaLink, FaMoneyBillWave } from "react-icons/fa";
 import { BsArrowRight, BsClipboard, BsCheckCircle } from "react-icons/bs";
 import { motion } from "framer-motion";
-import { saveProductFinancingSimulation } from "../services/simulationService";
 
 const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
   const [productLink, setProductLink] = useState("");
@@ -111,40 +110,7 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
           break;
       }
 
-      // Guardar la simulación en Supabase
-      const userData = company.user_data || {};
-      const simulationData = {
-        user_first_name: userData.firstName || '',
-        user_last_name: userData.lastName || '',
-        company_code: company.code || '',
-        company_name: company.name || '',
-        monthly_income: parseFloat(income),
-        payment_frequency: company.payment_frequency || 'monthly',
-        product_url: productLink,
-        product_name: '', // Se actualizará cuando se obtenga la información del producto
-        product_price: 0, // Se actualizará cuando se obtenga la información del producto
-      };
-
-      const result = await saveProductFinancingSimulation(simulationData);
-      
-      if (result.success) {
-        console.log('Simulación guardada exitosamente con ID:', result.data[0].id);
-        // Pasar el ID de la simulación para actualizar después con los planes
-        await onSubmit(productLink, parseFloat(income), monthlyIncome, result.data[0].id);
-      } else {
-        // Mostrar el error si es relacionado con Supabase
-        if (result.error) {
-          const errorMessage = result.error.message || 'Error al guardar la simulación';
-          console.error('Error detallado:', result.error);
-          setError(`Error al guardar: ${errorMessage}`);
-          
-          // A pesar del error, continuamos con la simulación pero sin el ID
-          await onSubmit(productLink, parseFloat(income), monthlyIncome);
-        } else {
-          // Si hay un error al guardar, continuamos con la simulación pero sin el ID
-          await onSubmit(productLink, parseFloat(income), monthlyIncome);
-        }
-      }
+      await onSubmit(productLink, parseFloat(income), monthlyIncome);
     } catch (err) {
       setError(err.message);
     } finally {
