@@ -1,25 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 import { HambugerMenu } from "./design/Header";
 import MenuSvg from "../assets/svg/MenuSvg";
 import { FaSignOutAlt, FaUser } from "react-icons/fa";
+import { getAuthUser, clearAuth } from "../utils/authUtils";
 
 const Header = () => {
   const pathname = useLocation();
   const navigate = useNavigate();
   const [openNavigation, setOpenNavigation] = useState(false);
+  const [userData, setUserData] = useState(null);
 
-  // Obtener datos del usuario de localStorage
-  const getUserData = () => {
-    const companyData = localStorage.getItem('companyData');
-    if (companyData) {
-      return JSON.parse(companyData);
-    }
-    return null;
-  };
-
-  const userData = getUserData();
+  // Obtener datos del usuario al cargar el componente
+  useEffect(() => {
+    const user = getAuthUser();
+    setUserData(user);
+  }, []);
 
   const toggleNavigation = () => {
     if (openNavigation) {
@@ -53,8 +50,8 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    // Eliminar datos de la empresa de localStorage
-    localStorage.removeItem('companyData');
+    // Eliminar datos de la empresa de localStorage usando la utilidad
+    clearAuth();
     // Redirigir a la página de login
     navigate('/login', { replace: true });
   };

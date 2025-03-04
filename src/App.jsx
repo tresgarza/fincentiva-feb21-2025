@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { repairSession } from "./utils/authUtils";
 import ButtonGradient from "./assets/svg/ButtonGradient";
 import Benefits from "./components/Benefits";
 import Footer from "./components/Footer";
@@ -26,6 +27,9 @@ import logoVallealto from './assets/logos/logo_empresa_vallealto.png';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Plans from './pages/Plans';
+
+// Intentar reparar la sesión al cargar la aplicación
+repairSession();
 
 const App = () => {
   const [productData, setProductData] = useState(null);
@@ -198,7 +202,7 @@ const router = createBrowserRouter([
   {
     // Ruta para cualquier path no definido - redirige a login si no hay sesión o a inicio si hay sesión
     path: "*",
-    element: <ProtectedRoute><Navigate to="/inicio" replace /></ProtectedRoute>
+    element: <Navigate to="/login" replace />
   }
 ], {
   future: {
@@ -209,6 +213,11 @@ const router = createBrowserRouter([
 
 // Componente principal que proporciona el enrutador
 const AppWrapper = () => {
+  // Asegurarse de que cualquier sesión corrupta se limpie al iniciar la aplicación
+  useEffect(() => {
+    repairSession();
+  }, []);
+
   return <RouterProvider router={router} />;
 };
 

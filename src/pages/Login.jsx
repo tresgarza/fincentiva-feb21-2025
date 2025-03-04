@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import CompanyAuth from '../components/CompanyAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import logoCartotec from '../assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from '../assets/logos/Logo_empresa_cadtoner.png';
 import logoEtimex from '../assets/logos/logo_empresa_etimex.png';
@@ -14,25 +14,74 @@ import logoVallealto from '../assets/logos/logo_empresa_vallealto.png';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Verificar si ya hay una sesión activa al cargar el componente
   useEffect(() => {
-    const companyData = localStorage.getItem('companyData');
-    
-    // Si ya hay una sesión activa, redirigir al inicio
-    if (companyData) {
-      navigate('/inicio', { replace: true });
+    try {
+      const companyData = localStorage.getItem('companyData');
+      
+      // Verificar si los datos son válidos
+      if (companyData) {
+        try {
+          const parsedData = JSON.parse(companyData);
+          if (parsedData && parsedData.id) {
+            setIsAuthenticated(true);
+          } else {
+            // Datos inválidos, limpiar localStorage
+            console.log("Datos de autenticación inválidos, limpiando...");
+            localStorage.removeItem('companyData');
+            setIsAuthenticated(false);
+          }
+        } catch (e) {
+          // Error al parsear JSON, limpiar localStorage
+          console.error("Error al parsear datos de localStorage:", e);
+          localStorage.removeItem('companyData');
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error("Error al verificar autenticación:", error);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
     }
   }, [navigate]);
 
   const handleAuthenticated = (companyData) => {
-    // Guardar los datos de la empresa en localStorage
-    localStorage.setItem('companyData', JSON.stringify(companyData));
-    
-    // Redirigir a la página de inicio
-    navigate('/inicio', { replace: true });
+    try {
+      // Guardar los datos de la empresa en localStorage
+      localStorage.setItem('companyData', JSON.stringify(companyData));
+      
+      // Actualizar el estado
+      setIsAuthenticated(true);
+      
+      // Redirigir a la página de inicio
+      navigate('/inicio', { replace: true });
+    } catch (error) {
+      console.error("Error al guardar datos de autenticación:", error);
+      alert("Error al iniciar sesión. Por favor, intenta de nuevo.");
+    }
   };
 
+  // Si está cargando, mostrar spinner
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-n-8 flex items-center justify-center">
+        <div className="animate-spin h-12 w-12 border-4 border-[#33FF57] rounded-full border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  // Si ya está autenticado, redirigir a inicio
+  if (isAuthenticated) {
+    return <Navigate to="/inicio" replace />;
+  }
+
+  // Si no está autenticado, mostrar el formulario de login
   return (
     <div className="min-h-screen bg-n-8">
       <CompanyAuth onAuthenticated={handleAuthenticated} />
