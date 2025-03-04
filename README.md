@@ -9,6 +9,7 @@ A financing platform that allows users to calculate payment plans for products f
 - Dynamic payment calculations based on company terms
 - Modern, responsive UI
 - Secure password verification
+- Supabase integration for storing simulation data
 
 ## Tech Stack
 
