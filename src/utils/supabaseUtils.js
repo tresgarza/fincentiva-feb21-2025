@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { supabase, supabaseFetch } from '../config/supabase';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config/api';
 
 /**
@@ -19,15 +19,26 @@ export const testSupabaseConnection = async () => {
       console.error('Status code:', status);
       console.error('Error details:', JSON.stringify(error, null, 2));
       
-      // Verificar la configuración
-      console.log('Supabase URL being used:', SUPABASE_URL);
-      if (SUPABASE_ANON_KEY) {
-        console.log('Key length:', SUPABASE_ANON_KEY.length);
-      } else {
-        console.error('API key is missing!');
-      }
+      // Si falla el cliente de Supabase, intentar con fetch directo
+      console.log('Intentando con fetch directo como alternativa...');
+      const result = await supabaseFetch('product_financing_simulations?select=count');
       
-      return false;
+      if (result.error) {
+        console.error('Fetch directo también falló:', result.error);
+        
+        // Verificar la configuración
+        console.log('Supabase URL being used:', SUPABASE_URL);
+        if (SUPABASE_ANON_KEY) {
+          console.log('Key length:', SUPABASE_ANON_KEY.length);
+        } else {
+          console.error('API key is missing!');
+        }
+        
+        return false;
+      } else {
+        console.log('Fetch directo exitoso:', result.data);
+        return true;
+      }
     }
     
     console.log('Supabase connection successful!');
@@ -51,13 +62,27 @@ export const insertWithRetry = async (table, data) => {
     
     if (!isConnected) {
       console.error('Cannot insert data: Supabase connection failed');
-      return { 
-        success: false, 
-        error: { message: 'No se pudo conectar con la base de datos' } 
-      };
+      
+      // Intentar con fetch directo como alternativa
+      console.log('Intentando insertar con fetch directo...');
+      const result = await supabaseFetch(table, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      
+      if (result.error) {
+        console.error(`Error inserting with direct fetch into ${table}:`, result.error);
+        return { 
+          success: false, 
+          error: { message: 'No se pudo conectar con la base de datos' } 
+        };
+      }
+      
+      console.log(`Successfully inserted into ${table} with direct fetch:`, result.data);
+      return { success: true, data: result.data };
     }
     
-    // Intentar la inserción
+    // Intentar la inserción con el cliente de Supabase
     console.log(`Inserting data into ${table}:`, data);
     
     const result = await supabase
@@ -96,13 +121,27 @@ export const updateWithRetry = async (table, updates, idField, idValue) => {
     
     if (!isConnected) {
       console.error('Cannot update data: Supabase connection failed');
-      return { 
-        success: false, 
-        error: { message: 'No se pudo conectar con la base de datos' } 
-      };
+      
+      // Intentar con fetch directo como alternativa
+      console.log('Intentando actualizar con fetch directo...');
+      const result = await supabaseFetch(`${table}?${idField}=eq.${idValue}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates)
+      });
+      
+      if (result.error) {
+        console.error(`Error updating with direct fetch in ${table}:`, result.error);
+        return { 
+          success: false, 
+          error: { message: 'No se pudo conectar con la base de datos' } 
+        };
+      }
+      
+      console.log(`Successfully updated ${table} with direct fetch:`, result.data);
+      return { success: true, data: result.data };
     }
     
-    // Intentar la actualización
+    // Intentar la actualización con el cliente de Supabase
     console.log(`Updating data in ${table} where ${idField}=${idValue}:`, updates);
     
     const result = await supabase
