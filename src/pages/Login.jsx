@@ -1,5 +1,5 @@
 import CompanyAuth from '../components/CompanyAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import logoCartotec from '../assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from '../assets/logos/Logo_empresa_cadtoner.png';
 import logoEtimex from '../assets/logos/logo_empresa_etimex.png';
@@ -10,15 +10,28 @@ import logoMatamoros from '../assets/logos/logo_empresa_matamoros.png';
 import logoLogistorage from '../assets/logos/logo_empresa_logistorage.png';
 import logoMulligans from '../assets/logos/logo_empresa_mulligans.png';
 import logoVallealto from '../assets/logos/logo_empresa_vallealto.png';
+import { useEffect } from 'react';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Verificar si el usuario ya está autenticado
+  useEffect(() => {
+    const companyData = localStorage.getItem('companyData');
+    if (companyData) {
+      // Si ya está autenticado, redirigir a la página de inicio
+      navigate('/inicio');
+    }
+  }, [navigate]);
 
   const handleAuthenticated = (companyData) => {
-    // Guardar los datos de la empresa en localStorage o en un estado global
+    // Guardar los datos de la empresa en localStorage
     localStorage.setItem('companyData', JSON.stringify(companyData));
-    // Redirigir a la página de inicio
-    navigate('/inicio');
+    
+    // Redirigir a la página que intentaba acceder o a la página de inicio por defecto
+    const from = location.state?.from || '/inicio';
+    navigate(from);
   };
 
   return (

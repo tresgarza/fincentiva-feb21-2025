@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 import { HambugerMenu } from "./design/Header";
 import MenuSvg from "../assets/svg/MenuSvg";
+import { FaSignOutAlt } from "react-icons/fa";
 
 const Header = () => {
   const pathname = useLocation();
+  const navigate = useNavigate();
   const [openNavigation, setOpenNavigation] = useState(false);
 
   const toggleNavigation = () => {
@@ -39,6 +41,13 @@ const Header = () => {
     }
   };
 
+  const handleLogout = () => {
+    // Eliminar los datos de la empresa del localStorage
+    localStorage.removeItem('companyData');
+    // Redirigir a la página de login
+    navigate('/login');
+  };
+
   const navigation = [
     {
       id: "0",
@@ -56,6 +65,12 @@ const Header = () => {
       url: "#footer",
     }
   ];
+
+  // Obtener los datos del usuario para mostrar en el header
+  const companyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+  const userName = companyData?.user_data?.firstName 
+    ? `${companyData.user_data.firstName} ${companyData.user_data.lastName || ''}`
+    : '';
 
   return (
     <div
@@ -102,9 +117,24 @@ const Header = () => {
           <HambugerMenu />
         </nav>
 
+        {/* Mostrar nombre de usuario y botón de logout */}
+        {userName && (
+          <div className="ml-auto flex items-center gap-4">
+            <span className="hidden md:block text-n-1 text-sm">{userName}</span>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-n-7 hover:bg-n-6 text-n-1 px-3 py-1.5 rounded-lg transition-colors"
+              title="Cerrar sesión"
+            >
+              <FaSignOutAlt className="text-[#33FF57]" />
+              <span className="hidden md:block">Salir</span>
+            </button>
+          </div>
+        )}
+
         <button
           onClick={toggleNavigation}
-          className="ml-auto lg:hidden"
+          className={`${userName ? 'mr-4' : 'ml-auto'} lg:hidden`}
         >
           <MenuSvg openNavigation={openNavigation} />
         </button>

@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { getCompanies, getByCode } from '../services/api';
 import Button from './Button';
-import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt, FaCalendarAlt } from 'react-icons/fa';
+import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt, FaCalendarAlt, FaUser } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Typewriter from 'typewriter-effect';
 
 const CompanyAuth = ({ onAuthenticated }) => {
   const [employeeCode, setEmployeeCode] = useState('');
   const [paymentFrequency, setPaymentFrequency] = useState('monthly');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,12 +20,16 @@ const CompanyAuth = ({ onAuthenticated }) => {
 
     try {
       const companyData = await getByCode(employeeCode);
-      // Agregar la frecuencia de pago seleccionada a los datos de la empresa
-      const companyWithFrequency = {
+      // Agregar la frecuencia de pago seleccionada y los datos personales a los datos de la empresa
+      const companyWithUserData = {
         ...companyData,
-        payment_frequency: paymentFrequency
+        payment_frequency: paymentFrequency,
+        user_data: {
+          firstName,
+          lastName
+        }
       };
-      onAuthenticated(companyWithFrequency);
+      onAuthenticated(companyWithUserData);
     } catch (error) {
       setError(error.message || 'Error al verificar credenciales');
       console.error('Authentication error:', error);
@@ -120,7 +126,54 @@ const CompanyAuth = ({ onAuthenticated }) => {
           </h2>
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Nuevo campo de frecuencia de pago */}
+            <div className="relative group">
+              <label 
+                htmlFor="firstName" 
+                className="block text-sm font-medium text-n-3 mb-2"
+              >
+                Nombre
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <FaUser className="text-n-4 group-focus-within:text-[#33FF57] transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-n-7 text-n-1 border border-n-6 focus:outline-none focus:border-[#33FF57] transition-colors placeholder-n-4/50"
+                  placeholder="Ingresa tu nombre"
+                />
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#33FF57] to-[#33FF57] opacity-0 group-focus-within:opacity-10 transition-opacity pointer-events-none"></div>
+              </div>
+            </div>
+
+            <div className="relative group">
+              <label 
+                htmlFor="lastName" 
+                className="block text-sm font-medium text-n-3 mb-2"
+              >
+                Apellido
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <FaUser className="text-n-4 group-focus-within:text-[#33FF57] transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-n-7 text-n-1 border border-n-6 focus:outline-none focus:border-[#33FF57] transition-colors placeholder-n-4/50"
+                  placeholder="Ingresa tu apellido"
+                />
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#33FF57] to-[#33FF57] opacity-0 group-focus-within:opacity-10 transition-opacity pointer-events-none"></div>
+              </div>
+            </div>
+
             <div className="relative group">
               <label 
                 htmlFor="paymentFrequency" 

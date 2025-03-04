@@ -8,6 +8,7 @@ import ProductLinkForm from "./components/ProductLinkForm";
 import CreditAmountForm from "./components/CreditAmountForm";
 import FinancingOptions from "./components/FinancingOptions";
 import CompanyAuth from "./components/CompanyAuth";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { getProductInfo } from "./services/api";
 import Typewriter from 'typewriter-effect';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
@@ -188,11 +189,16 @@ const router = createBrowserRouter([
   },
   {
     path: "/inicio",
-    element: <Home />
+    element: <ProtectedRoute><Home /></ProtectedRoute>
   },
   {
     path: "/planes",
-    element: <Plans />
+    element: <ProtectedRoute><Plans /></ProtectedRoute>
+  },
+  // Capturar cualquier otra ruta y redirigir a login si no está autenticado
+  {
+    path: "*",
+    element: <ProtectedRoute><Navigate to="/inicio" replace /></ProtectedRoute>
   }
 ], {
   future: {
