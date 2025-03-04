@@ -4,6 +4,7 @@ import Section from "./Section";
 import { FaMoneyBillWave } from "react-icons/fa";
 import { BsClipboard, BsCheckCircle } from "react-icons/bs";
 import { motion } from "framer-motion";
+import { saveCashRequestSimulation } from "../services/simulationService";
 
 const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
   const [income, setIncome] = useState("");
@@ -97,7 +98,27 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
     setError("");
 
     try {
-      await onSubmit(parseFloat(amount), parseFloat(income));
+      // Guardar la simulación en Supabase
+      const userData = company.user_data || {};
+      const simulationData = {
+        user_first_name: userData.firstName || '',
+        user_last_name: userData.lastName || '',
+        company_code: company.code || '',
+        company_name: company.name || '',
+        monthly_income: parseFloat(income),
+        payment_frequency: company.payment_frequency || 'monthly',
+        requested_amount: parseFloat(amount)
+      };
+
+      const result = await saveCashRequestSimulation(simulationData);
+      
+      if (result.success) {
+        // Pasar el ID de la simulación para actualizar después con los planes
+        await onSubmit(parseFloat(amount), parseFloat(income), result.data[0].id);
+      } else {
+        // Si hay un error al guardar, continuamos con la simulación pero sin el ID
+        await onSubmit(parseFloat(amount), parseFloat(income));
+      }
     } catch (err) {
       setError(err.message);
     } finally {

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { ScrollParallax } from "react-just-parallax";
 import { heroIcons } from "../constants";
 import { curve } from "../assets";
@@ -40,6 +40,8 @@ const Hero = ({
   setIsLoading
 }) => {
   const parallaxRef = useRef(null);
+  const [currentSimulationId, setCurrentSimulationId] = useState(null);
+  const [simulationType, setSimulationType] = useState(null);
 
   const marketplaces = [
     {
@@ -83,6 +85,24 @@ const Hero = ({
       ease: "power3.out"
     });
   });
+
+  // Función para manejar la simulación de producto
+  const handleProductSimulation = async (productLink, income, monthlyIncome, simulationId) => {
+    if (simulationId) {
+      setCurrentSimulationId(simulationId);
+      setSimulationType('product');
+    }
+    await handleProductSubmit(productLink, income, monthlyIncome);
+  };
+
+  // Función para manejar la simulación de efectivo
+  const handleCashSimulation = async (amount, income, simulationId) => {
+    if (simulationId) {
+      setCurrentSimulationId(simulationId);
+      setSimulationType('cash');
+    }
+    await handleAmountSubmit(amount, income);
+  };
 
   return (
     <Section
@@ -230,14 +250,14 @@ const Hero = ({
               <>
                 {activeForm === 'product' ? (
                   <ProductLinkForm 
-                    onSubmit={handleProductSubmit}
+                    onSubmit={handleProductSimulation}
                     isLoading={isLoading}
                     company={companyData}
                     showLoader={showLoader}
                   />
                 ) : (
                   <CreditAmountForm
-                    onSubmit={handleAmountSubmit}
+                    onSubmit={handleCashSimulation}
                     isLoading={isLoading}
                     company={companyData}
                     showLoader={showLoader}
@@ -254,6 +274,8 @@ const Hero = ({
                   setShowLoader(false);
                   setIsLoading(false);
                 }}
+                simulationId={currentSimulationId}
+                simulationType={simulationType}
               />
             )}
           </div>

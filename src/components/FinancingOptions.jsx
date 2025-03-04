@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import Button from "./Button";
 import { API_URL } from '../config/api';
+import { updateProductFinancingWithSelectedPlan, updateCashRequestWithSelectedPlan } from '../services/simulationService';
 
-const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) => {
+const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded, simulationId, simulationType }) => {
   const [paymentOptions, setPaymentOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [savingSelection, setSavingSelection] = useState(false);
 
   // Calcular el pago máximo por periodo (25% del ingreso por periodo)
   const calculateMaxPaymentPerPeriod = () => {
@@ -135,11 +137,23 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     }
   };
 
-  const handlePlanSelection = () => {
+  const handlePlanSelection = async () => {
     if (!selectedPlan) return;
-
-    // Construir el mensaje con la información del plan
-    const message = `¡Hola! 👋
+    
+    setSavingSelection(true);
+    
+    try {
+      // Guardar la selección del plan en Supabase
+      if (simulationId) {
+        if (simulationType === 'product') {
+          await updateProductFinancingWithSelectedPlan(simulationId, selectedPlan.periods.toString());
+        } else if (simulationType === 'cash') {
+          await updateCashRequestWithSelectedPlan(simulationId, selectedPlan.periods.toString());
+        }
+      }
+      
+      // Construir el mensaje con la información del plan
+      const message = `¡Hola! 👋
 
 Me interesa solicitar un financiamiento con las siguientes características:
 
@@ -157,11 +171,16 @@ Me interesa solicitar un financiamiento con las siguientes características:
 Me gustaría recibir más información sobre el proceso de solicitud.
 ¡Gracias!`;
 
-    // Codificar el mensaje para URL
-    const encodedMessage = encodeURIComponent(message);
-    
-    // Redirigir a WhatsApp
-    window.open(`https://wa.me/5218116364522?text=${encodedMessage}`, '_blank');
+      // Codificar el mensaje para URL
+      const encodedMessage = encodeURIComponent(message);
+      
+      // Redirigir a WhatsApp
+      window.open(`https://wa.me/5218116364522?text=${encodedMessage}`, '_blank');
+    } catch (error) {
+      console.error('Error al guardar la selección del plan:', error);
+    } finally {
+      setSavingSelection(false);
+    }
   };
 
   return (
@@ -378,19 +397,39 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                 <Button
                   className="px-3 py-1 text-xs bg-n-7 hover:bg-n-6 transition-colors"
                   onClick={onBack}
+                  disabled={savingSelection}
                 >
                   Regresar
                 </Button>
                 <Button
                   className={`
                     px-3 py-1 text-xs bg-n-7 hover:bg-n-6 transition-colors
-                    ${!selectedPlan ? 'opacity-50 cursor-not-allowed' : ''}
+                    ${(!selectedPlan || savingSelection) ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
-                  disabled={!selectedPlan}
+                  disabled={!selectedPlan || savingSelection}
                   onClick={handlePlanSelection}
                 >
                   <span className="flex items-center gap-1.5">
-                    {selectedPlan ? (
+                    {savingSelection ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 mr-1" viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        Procesando...
+                      </>
+                    ) : selectedPlan ? (
                       <>
                         Continuar con Plan Seleccionado
                         <svg 
