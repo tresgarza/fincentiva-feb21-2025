@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase';
+import { insertWithRetry, updateWithRetry } from '../utils/supabaseUtils';
 
 /**
  * Guarda una simulación de financiamiento de producto en Supabase
@@ -9,30 +10,18 @@ export const saveProductFinancingSimulation = async (simulationData) => {
   try {
     console.log('Attempting to save product simulation with data:', simulationData);
     
-    // Verificar la conexión con Supabase
-    const { data: connectionTest, error: connectionError } = await supabase.from('product_financing_simulations').select('count', { count: 'exact', head: true });
+    // Usar la función de utilidad para insertar con manejo de errores mejorado
+    const result = await insertWithRetry('product_financing_simulations', simulationData);
     
-    if (connectionError) {
-      console.error('Supabase connection test error:', connectionError);
-      throw new Error(`Error de conexión: ${connectionError.message}`);
+    if (result.success) {
+      console.log('Simulación de producto guardada exitosamente:', result.data);
+    } else {
+      console.error('Error al guardar simulación de producto:', result.error);
     }
     
-    console.log('Supabase connection successful, proceeding with insert');
-    
-    const { data, error } = await supabase
-      .from('product_financing_simulations')
-      .insert([simulationData])
-      .select();
-
-    if (error) {
-      console.error('Supabase insert error:', error);
-      throw error;
-    }
-    
-    console.log('Simulación de producto guardada:', data);
-    return { success: true, data };
+    return result;
   } catch (error) {
-    console.error('Error al guardar simulación de producto:', error);
+    console.error('Excepción no controlada al guardar simulación de producto:', error);
     return { success: false, error };
   }
 };
@@ -46,30 +35,18 @@ export const saveCashRequestSimulation = async (simulationData) => {
   try {
     console.log('Attempting to save cash simulation with data:', simulationData);
     
-    // Verificar la conexión con Supabase
-    const { data: connectionTest, error: connectionError } = await supabase.from('cash_request_simulations').select('count', { count: 'exact', head: true });
+    // Usar la función de utilidad para insertar con manejo de errores mejorado
+    const result = await insertWithRetry('cash_request_simulations', simulationData);
     
-    if (connectionError) {
-      console.error('Supabase connection test error:', connectionError);
-      throw new Error(`Error de conexión: ${connectionError.message}`);
+    if (result.success) {
+      console.log('Simulación de efectivo guardada exitosamente:', result.data);
+    } else {
+      console.error('Error al guardar simulación de efectivo:', result.error);
     }
     
-    console.log('Supabase connection successful, proceeding with insert');
-    
-    const { data, error } = await supabase
-      .from('cash_request_simulations')
-      .insert([simulationData])
-      .select();
-
-    if (error) {
-      console.error('Supabase insert error:', error);
-      throw error;
-    }
-    
-    console.log('Simulación de efectivo guardada:', data);
-    return { success: true, data };
+    return result;
   } catch (error) {
-    console.error('Error al guardar simulación de efectivo:', error);
+    console.error('Excepción no controlada al guardar simulación de efectivo:', error);
     return { success: false, error };
   }
 };
@@ -84,24 +61,23 @@ export const updateProductFinancingWithSelectedPlan = async (simulationId, selec
   try {
     console.log('Attempting to update product simulation with selected plan:', { simulationId, selectedPlanId });
     
-    const { data, error } = await supabase
-      .from('product_financing_simulations')
-      .update({ 
-        selected_plan_id: selectedPlanId,
-        status: 'selected'
-      })
-      .eq('id', simulationId)
-      .select();
-
-    if (error) {
-      console.error('Error updating product financing with selected plan:', error);
-      throw error;
+    // Usar la función de utilidad para actualizar con manejo de errores mejorado
+    const result = await updateWithRetry(
+      'product_financing_simulations',
+      { selected_plan_id: selectedPlanId, status: 'selected' },
+      'id',
+      simulationId
+    );
+    
+    if (result.success) {
+      console.log('Plan seleccionado actualizado para producto:', result.data);
+    } else {
+      console.error('Error al actualizar plan seleccionado para producto:', result.error);
     }
     
-    console.log('Plan seleccionado actualizado para producto:', data);
-    return { success: true, data };
+    return result;
   } catch (error) {
-    console.error('Error al actualizar plan seleccionado para producto:', error);
+    console.error('Excepción no controlada al actualizar plan de producto:', error);
     return { success: false, error };
   }
 };
@@ -116,24 +92,23 @@ export const updateCashRequestWithSelectedPlan = async (simulationId, selectedPl
   try {
     console.log('Attempting to update cash simulation with selected plan:', { simulationId, selectedPlanId });
     
-    const { data, error } = await supabase
-      .from('cash_request_simulations')
-      .update({ 
-        selected_plan_id: selectedPlanId,
-        status: 'selected'
-      })
-      .eq('id', simulationId)
-      .select();
-
-    if (error) {
-      console.error('Error updating cash request with selected plan:', error);
-      throw error;
+    // Usar la función de utilidad para actualizar con manejo de errores mejorado
+    const result = await updateWithRetry(
+      'cash_request_simulations',
+      { selected_plan_id: selectedPlanId, status: 'selected' },
+      'id',
+      simulationId
+    );
+    
+    if (result.success) {
+      console.log('Plan seleccionado actualizado para efectivo:', result.data);
+    } else {
+      console.error('Error al actualizar plan seleccionado para efectivo:', result.error);
     }
     
-    console.log('Plan seleccionado actualizado para efectivo:', data);
-    return { success: true, data };
+    return result;
   } catch (error) {
-    console.error('Error al actualizar plan seleccionado para efectivo:', error);
+    console.error('Excepción no controlada al actualizar plan de efectivo:', error);
     return { success: false, error };
   }
 }; 
