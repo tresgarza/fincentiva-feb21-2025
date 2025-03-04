@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Hero from "../components/Hero";
 import Benefits from "../components/Benefits";
 import Footer from "../components/Footer";
 import ButtonGradient from "../assets/svg/ButtonGradient";
 import { getProductInfo } from "../services/api";
+import { getUserData } from "../utils/auth";
 
 const Home = () => {
-  const navigate = useNavigate();
   const [companyData, setCompanyData] = useState(null);
   const [productData, setProductData] = useState(null);
   const [showFinancingOptions, setShowFinancingOptions] = useState(false);
@@ -17,16 +16,18 @@ const Home = () => {
   const [activeForm, setActiveForm] = useState('product');
   const [monthlyIncome, setMonthlyIncome] = useState(null);
   const [showLoader, setShowLoader] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Verificar autenticación al cargar la página
-    const storedCompanyData = localStorage.getItem('companyData');
-    if (!storedCompanyData) {
-      navigate('/login');
-    } else {
-      setCompanyData(JSON.parse(storedCompanyData));
+    // Cargar datos de la empresa desde el utility
+    if (!isInitialized) {
+      const userData = getUserData();
+      if (userData) {
+        setCompanyData(userData);
+      }
+      setIsInitialized(true);
     }
-  }, [navigate]);
+  }, [isInitialized]);
 
   const handleProductSubmit = async (productLink, income, monthlyIncome) => {
     setIsLoading(true);
@@ -38,13 +39,7 @@ const Home = () => {
       setProductData(data);
       setMonthlyIncome(income);
       await new Promise(resolve => setTimeout(resolve, 1500));
-      navigate('/planes', { 
-        state: { 
-          productData: data, 
-          monthlyIncome: income,
-          companyData: companyData 
-        } 
-      });
+      setShowFinancingOptions(true);
     } catch (err) {
       setError(err.message);
       console.error("Error fetching product data:", err);
@@ -67,13 +62,8 @@ const Home = () => {
         features: ["Financiamiento directo", "Disponibilidad inmediata"]
       };
       await new Promise(resolve => setTimeout(resolve, 1500));
-      navigate('/planes', { 
-        state: { 
-          productData: simulatedProduct, 
-          monthlyIncome: income,
-          companyData: companyData 
-        } 
-      });
+      setProductData(simulatedProduct);
+      setShowFinancingOptions(true);
     } catch (err) {
       setError(err.message);
       console.error("Error processing amount:", err);
@@ -83,8 +73,31 @@ const Home = () => {
     }
   };
 
-  if (!companyData) {
-    return null;
+  const handleBack = () => {
+    // Primero hacemos el scroll suave hacia arriba
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
+    // Después de un pequeño delay, actualizamos los estados
+    setTimeout(() => {
+      setShowFinancingOptions(false);
+      setProductData(null);
+      setError(null);
+    }, 100);
+  };
+
+  // Mostrar un indicador de carga mientras se inicializa
+  if (!isInitialized || !companyData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-n-8">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-n-1 border-t-[#33FF57] rounded-full animate-spin"></div>
+          <p className="mt-2 text-n-1">Cargando...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -116,9 +129,12 @@ const Home = () => {
           showLoader={showLoader}
           productData={productData}
           monthlyIncome={monthlyIncome}
+          handleBack={handleBack}
+          setShowLoader={setShowLoader}
+          setIsLoading={setIsLoading}
         />
         <div className="mt-8">
-          <Benefits />
+          {!showFinancingOptions && <Benefits />}
         </div>
         <Footer />
         <ButtonGradient />

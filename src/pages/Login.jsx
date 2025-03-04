@@ -1,6 +1,6 @@
 import CompanyAuth from '../components/CompanyAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import logoCartotec from '../assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from '../assets/logos/Logo_empresa_cadtoner.png';
 import logoEtimex from '../assets/logos/logo_empresa_etimex.png';
@@ -15,18 +15,27 @@ import logoVallealto from '../assets/logos/logo_empresa_vallealto.png';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [redirecting, setRedirecting] = useState(false);
   
   // Verificar si ya hay una sesión activa
   useEffect(() => {
+    // Evitar múltiples redirecciones
+    if (redirecting) return;
+    
     const companyData = localStorage.getItem('companyData');
     if (companyData) {
+      setRedirecting(true);
       // Si ya hay una sesión, redirigir a inicio
       const from = location.state?.from?.pathname || '/inicio';
       navigate(from, { replace: true });
     }
-  }, [navigate, location]);
+  }, [navigate, location, redirecting]);
 
   const handleAuthenticated = (companyData) => {
+    // Evitar múltiples redirecciones
+    if (redirecting) return;
+    setRedirecting(true);
+    
     // Guardar los datos de la empresa y usuario en localStorage
     localStorage.setItem('companyData', JSON.stringify(companyData));
     
@@ -41,6 +50,18 @@ const Login = () => {
     const from = location.state?.from?.pathname || '/inicio';
     navigate(from, { replace: true });
   };
+
+  // Si ya estamos redirigiendo, no mostrar nada para evitar parpadeos
+  if (redirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-n-8">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-n-1 border-t-[#33FF57] rounded-full animate-spin"></div>
+          <p className="mt-2 text-n-1">Iniciando sesión...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-n-8">

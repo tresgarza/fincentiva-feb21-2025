@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 import { HambugerMenu } from "./design/Header";
 import MenuSvg from "../assets/svg/MenuSvg";
+import { FaSignOutAlt } from 'react-icons/fa';
+import { logout } from '../utils/auth';
 
 const Header = () => {
   const pathname = useLocation();
+  const navigate = useNavigate();
   const [openNavigation, setOpenNavigation] = useState(false);
 
   const toggleNavigation = () => {
@@ -39,6 +42,11 @@ const Header = () => {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const navigation = [
     {
       id: "0",
@@ -63,10 +71,10 @@ const Header = () => {
         openNavigation ? "bg-n-8" : "bg-n-8/90 backdrop-blur-sm"
       }`}
     >
-      <div className="flex items-center px-4 lg:px-6 max-lg:py-2 h-[50px]">
+      <div className="flex items-center justify-between px-4 lg:px-6 max-lg:py-2 h-[50px]">
         <a 
           href="#hero" 
-          className="block w-[10rem] mr-12"
+          className="block w-[10rem]"
           onClick={handleClick}
         >
           <h1 className="text-xl font-bold text-white">FINCENTIVA</h1>
@@ -102,12 +110,22 @@ const Header = () => {
           <HambugerMenu />
         </nav>
 
-        <button
-          onClick={toggleNavigation}
-          className="ml-auto lg:hidden"
-        >
-          <MenuSvg openNavigation={openNavigation} />
-        </button>
+        <div className="flex items-center">
+          <button
+            onClick={handleLogout}
+            className="flex items-center text-sm text-white bg-[#33FF57]/20 hover:bg-[#33FF57]/30 transition-colors px-3 py-1.5 rounded-lg mr-4"
+          >
+            <FaSignOutAlt className="mr-1.5" />
+            <span className="hidden sm:inline">Cerrar Sesión</span>
+          </button>
+          
+          <button
+            onClick={toggleNavigation}
+            className="lg:hidden"
+          >
+            <MenuSvg openNavigation={openNavigation} />
+          </button>
+        </div>
       </div>
     </div>
   );
