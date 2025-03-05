@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Button from "./Button";
 import { API_URL } from '../config/api';
 import { saveProductSimulation, saveCashRequest, saveSelectedPlan } from '../services/supabaseServices';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) => {
   const [paymentOptions, setPaymentOptions] = useState([]);
@@ -10,6 +11,17 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [simulationId, setSimulationId] = useState(null);
   const [isSavingPlan, setIsSavingPlan] = useState(false);
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  const [showLoadingPopup, setShowLoadingPopup] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
+
+  // Mostrar notificación
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 3000);
+  };
 
   // Calcular el pago máximo por periodo (25% del ingreso por periodo)
   const calculateMaxPaymentPerPeriod = () => {
@@ -166,10 +178,15 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       
       if (result.success && result.data && result.data.length > 0) {
         setSimulationId(result.data[0].id);
+        showNotification("¡Simulación guardada exitosamente!");
+        return result.data[0].id;
+      } else {
+        console.error('Error al guardar simulación:', result.error);
+        return null;
       }
     } catch (error) {
-      console.error('Error al guardar la simulación:', error);
-      // No mostramos el error al usuario para no interrumpir la experiencia
+      console.error('Error al guardar simulación:', error);
+      return null;
     }
   };
 
@@ -210,10 +227,30 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     if (!selectedPlan || !simulationId || isSavingPlan) return;
     
     setIsSavingPlan(true);
+    setShowLoadingPopup(true);
     
     try {
+      // Configurar animación por pasos
+      let stepCount = 0;
+      const stepInterval = setInterval(() => {
+        stepCount++;
+        setLoadingStep(stepCount);
+        if (stepCount >= 3) clearInterval(stepInterval);
+      }, 1000);
+
       // Determine simulation type
       const simulationType = product.title === "Crédito en Efectivo" ? 'cash' : 'product';
+      
+      // Preparar datos adicionales del producto
+      const productData = {};
+      if (simulationType === 'product' && product) {
+        productData.product_url = product.url || '';
+        productData.product_title = product.title || '';
+        productData.product_price = parseFloat(product.price) || 0;
+        productData.product_image = product.image || '';
+      } else if (simulationType === 'cash') {
+        productData.requested_amount = parseFloat(product.price) || 0;
+      }
       
       // Save selected plan to Supabase
       const planData = {
@@ -223,19 +260,28 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         period_label: selectedPlan.periodLabel,
         payment_per_period: selectedPlan.paymentPerPeriod,
         total_payment: selectedPlan.totalPayment,
-        interest_rate: selectedPlan.interestRate
+        interest_rate: selectedPlan.interestRate,
+        ...productData // Incluir datos del producto
       };
       
       await saveSelectedPlan(planData);
-
+      
       // Construir el mensaje con la información del plan
-      const message = `¡Hola! 👋
+      let message = `¡Hola! 👋
 
 Me interesa solicitar un financiamiento con las siguientes características:
 
 *Datos del Producto:*
 📱 Producto: ${product.title}
-💰 Precio: ${formatCurrency(product.price)}
+💰 Precio: ${formatCurrency(product.price)}`;
+
+      // Añadir enlace del producto si existe
+      if (product.url && product.title !== "Crédito en Efectivo") {
+        message += `
+🔗 Enlace: ${product.url}`;
+      }
+
+      message += `
 
 *Plan de Financiamiento Seleccionado:*
 🏢 Empresa: ${company.name}
@@ -247,21 +293,98 @@ Me interesa solicitar un financiamiento con las siguientes características:
 Me gustaría recibir más información sobre el proceso de solicitud.
 ¡Gracias!`;
 
+      // Esperar a que la animación termine (mínimo 3 segundos)
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
       // Codificar el mensaje para URL
       const encodedMessage = encodeURIComponent(message);
       
       // Redirigir a WhatsApp
       window.open(`https://wa.me/5218116364522?text=${encodedMessage}`, '_blank');
+      
+      showNotification("¡Plan seleccionado correctamente!");
     } catch (error) {
       console.error('Error al guardar el plan seleccionado:', error);
-      // No interrumpimos la experiencia del usuario si hay un error
+      showNotification("Hubo un error al guardar el plan seleccionado", "error");
     } finally {
       setIsSavingPlan(false);
+      setShowLoadingPopup(false);
     }
   };
 
   return (
     <div className="w-full px-3 py-1">
+      {/* Notificación */}
+      <AnimatePresence>
+        {notification.show && (
+          <motion.div 
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className={`fixed top-5 right-5 z-50 rounded-lg shadow-lg px-4 py-2 ${
+              notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white font-medium`}
+          >
+            {notification.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Loading Popup */}
+      <AnimatePresence>
+        {showLoadingPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="bg-n-7 rounded-xl border border-n-6 p-6 shadow-lg max-w-md w-full mx-4"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="relative w-24 h-24 mb-4">
+                  <svg className="animate-spin w-full h-full" viewBox="0 0 50 50">
+                    <circle
+                      className="stroke-[#40E0D0]"
+                      strokeWidth="2"
+                      fill="none"
+                      r="20"
+                      cx="25"
+                      cy="25"
+                      strokeDasharray="89, 200"
+                      strokeDashoffset="0"
+                    ></circle>
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center text-white font-medium text-lg">
+                    {Math.min(Math.round((loadingStep / 3) * 100), 100)}%
+                  </div>
+                </div>
+                
+                <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#40E0D0] to-[#3FD494] mb-2">
+                  Procesando tu solicitud
+                </h3>
+                
+                <div className="space-y-2 text-n-3">
+                  <p className={loadingStep >= 1 ? "text-white" : ""}>
+                    {loadingStep >= 1 ? "✓ " : ""}Guardando tus preferencias...
+                  </p>
+                  <p className={loadingStep >= 2 ? "text-white" : ""}>
+                    {loadingStep >= 2 ? "✓ " : ""}Preparando tu plan de financiamiento...
+                  </p>
+                  <p className={loadingStep >= 3 ? "text-white" : ""}>
+                    {loadingStep >= 3 ? "✓ " : ""}¡Listo para redireccionar a WhatsApp!
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="relative p-0.5 rounded-lg bg-gradient-to-r from-[#40E0D0] via-[#4DE8B2] to-[#3FD494] overflow-hidden max-w-[720px] mx-auto">
         <div className="relative bg-n-8 rounded-lg p-3">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
