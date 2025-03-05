@@ -149,6 +149,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       const commonData = {
         user_first_name: userData.firstName || '',
         user_last_name: userData.lastName || '',
+        user_phone: userData.phone || '',
         company_id: company.id,
         company_name: company.name,
         company_code: companyCode,
@@ -281,6 +282,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         // Datos del usuario
         user_first_name: userData.firstName || '',
         user_last_name: userData.lastName || '',
+        user_phone: userData.phone || '',
         // Datos del producto
         ...productData
       };
@@ -310,6 +312,10 @@ Me interesa solicitar un financiamiento con las siguientes características:
 💳 Pago por ${selectedPlan.periodLabel}: ${formatCurrency(selectedPlan.paymentPerPeriod)}
 💵 Total a pagar: ${formatCurrency(selectedPlan.totalPayment)}
 📊 Tasa de interés: ${selectedPlan.interestRate}% anual
+
+*Datos de Contacto:*
+👤 Nombre: ${userData.firstName} ${userData.lastName}
+📞 Teléfono: ${userData.phone || 'No proporcionado'}
 
 Me gustaría recibir más información sobre el proceso de solicitud.
 ¡Gracias!`;
