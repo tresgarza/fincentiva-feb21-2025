@@ -252,6 +252,19 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         productData.requested_amount = parseFloat(product.price) || 0;
       }
       
+      // Obtener datos del usuario
+      const userData = company.user_data || {};
+      
+      // Obtener el código de la empresa
+      let companyCode = company.employee_code;
+      if (!companyCode) {
+        const storedCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+        companyCode = storedCompanyData.employee_code || storedCompanyData.code;
+        if (!companyCode) {
+          companyCode = company.id || "COMPANY-" + Math.floor(Math.random() * 1000);
+        }
+      }
+      
       // Save selected plan to Supabase
       const planData = {
         simulation_id: simulationId,
@@ -261,7 +274,15 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         payment_per_period: selectedPlan.paymentPerPeriod,
         total_payment: selectedPlan.totalPayment,
         interest_rate: selectedPlan.interestRate,
-        ...productData // Incluir datos del producto
+        // Datos de la empresa
+        company_id: company.id,
+        company_name: company.name,
+        company_code: companyCode,
+        // Datos del usuario
+        user_first_name: userData.firstName || '',
+        user_last_name: userData.lastName || '',
+        // Datos del producto
+        ...productData
       };
       
       await saveSelectedPlan(planData);
