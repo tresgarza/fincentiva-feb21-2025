@@ -115,6 +115,21 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       // Obtener datos del usuario desde localStorage
       const userData = company.user_data || {};
       
+      // Verificar si tenemos el código de la empresa
+      let companyCode = company.code;
+      
+      // Si no hay código en el objeto company, intentar obtenerlo del localStorage
+      if (!companyCode) {
+        const storedCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+        companyCode = storedCompanyData.code;
+        
+        // Si aún no tenemos código, mostrar error
+        if (!companyCode) {
+          console.error('Error: No se encontró el código de la empresa');
+          return { success: false, error: 'No se encontró el código de la empresa' };
+        }
+      }
+      
       // Determinar si es una simulación de producto o una solicitud de efectivo
       const isProductSimulation = product.title !== "Crédito en Efectivo";
       
@@ -124,7 +139,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         user_last_name: userData.lastName || '',
         company_id: company.id,
         company_name: company.name,
-        company_code: company.code,
+        company_code: companyCode, // Usar el código obtenido
         user_income: parseFloat(company.monthly_income),
         payment_frequency: company.payment_frequency,
         monthly_income: parseFloat(company.monthly_income),
