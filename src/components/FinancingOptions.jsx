@@ -115,18 +115,32 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       // Obtener datos del usuario desde localStorage
       const userData = company.user_data || {};
       
+      // DEBUGGING: Mostrar información de diagnóstico
+      console.log("DEBUGGING saveSimulation - company object:", company);
+      
       // Verificar si tenemos el código de la empresa
       let companyCode = company.code;
+      console.log("DEBUGGING - Código directo del objeto company:", companyCode);
       
       // Si no hay código en el objeto company, intentar obtenerlo del localStorage
       if (!companyCode) {
         const storedCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
-        companyCode = storedCompanyData.code;
+        console.log("DEBUGGING - Datos de empresa en localStorage:", storedCompanyData);
         
-        // Si aún no tenemos código, mostrar error
+        companyCode = storedCompanyData.code || storedCompanyData.employee_code;
+        console.log("DEBUGGING - Código obtenido de localStorage:", companyCode);
+        
+        // Si aún no tenemos código, usar el employeeCode si está disponible
+        if (!companyCode && company.employee_code) {
+          companyCode = company.employee_code;
+          console.log("DEBUGGING - Usando employee_code como alternativa:", companyCode);
+        }
+        
+        // Si aún no tenemos código, usar cualquier identificador disponible o un valor predeterminado
         if (!companyCode) {
-          console.error('Error: No se encontró el código de la empresa');
-          return { success: false, error: 'No se encontró el código de la empresa' };
+          // Usar el ID de la empresa o un valor genérico como último recurso
+          companyCode = company.id || "COMPANY-" + Math.floor(Math.random() * 1000);
+          console.log("DEBUGGING - Usando ID o valor genérico como último recurso:", companyCode);
         }
       }
       
@@ -145,6 +159,8 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         monthly_income: parseFloat(company.monthly_income),
         recommended_plans: plans
       };
+      
+      console.log("DEBUGGING - Datos que se enviarán a Supabase:", commonData);
       
       let result;
       
