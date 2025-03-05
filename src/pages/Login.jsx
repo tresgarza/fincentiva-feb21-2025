@@ -26,8 +26,17 @@ const Login = () => {
   }, [navigate]);
 
   const handleAuthenticated = (companyData) => {
+    // Log para depurar
+    console.log('Datos de la empresa en handleAuthenticated:', companyData);
+    console.log('Datos del usuario en handleAuthenticated:', companyData.user_data);
+    
     // Guardar los datos de la empresa en localStorage
     localStorage.setItem('companyData', JSON.stringify(companyData));
+    
+    // Verificar que se guardó correctamente
+    const storedData = JSON.parse(localStorage.getItem('companyData') || '{}');
+    console.log('Datos guardados en localStorage:', storedData);
+    console.log('Teléfono guardado en localStorage:', storedData.user_data?.phone);
     
     // Redirigir a la página que intentaba acceder o a la página de inicio por defecto
     const from = location.state?.from || '/inicio';

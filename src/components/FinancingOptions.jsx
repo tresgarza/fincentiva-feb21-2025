@@ -127,6 +127,20 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       // Obtener datos del usuario desde localStorage
       const userData = company.user_data || {};
       
+      // Log para depurar
+      console.log('Datos del usuario en saveSimulation:', userData);
+      console.log('Teléfono del usuario:', userData.phone);
+      
+      // Intentar obtener datos del usuario desde localStorage si no están en company
+      if (!userData.phone) {
+        const storedCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+        console.log('Datos de la empresa en localStorage:', storedCompanyData);
+        if (storedCompanyData.user_data && storedCompanyData.user_data.phone) {
+          userData.phone = storedCompanyData.user_data.phone;
+          console.log('Teléfono obtenido desde localStorage:', userData.phone);
+        }
+      }
+      
       // Obtener el código de la empresa, preferiblemente del campo employee_code
       let companyCode = company.employee_code;
       
@@ -144,6 +158,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       
       // Determinar si es una simulación de producto o una solicitud de efectivo
       const isProductSimulation = product.title !== "Crédito en Efectivo";
+      console.log('Tipo de simulación:', isProductSimulation ? 'Producto' : 'Efectivo');
       
       // Datos comunes para ambos tipos de simulación
       const commonData = {
@@ -158,6 +173,8 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         monthly_income: parseFloat(company.monthly_income),
         recommended_plans: plans
       };
+      
+      console.log('Datos comunes a enviar:', commonData);
       
       let result;
       
@@ -176,6 +193,8 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
           requested_amount: parseFloat(product.price)
         });
       }
+      
+      console.log('Resultado de guardar simulación:', result);
       
       if (result.success && result.data && result.data.length > 0) {
         setSimulationId(result.data[0].id);
@@ -241,6 +260,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
 
       // Determine simulation type
       const simulationType = product.title === "Crédito en Efectivo" ? 'cash' : 'product';
+      console.log('Tipo de simulación en handlePlanSelection:', simulationType);
       
       // Preparar datos adicionales del producto
       const productData = {};
@@ -255,6 +275,18 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       
       // Obtener datos del usuario
       const userData = company.user_data || {};
+      console.log('Datos del usuario en handlePlanSelection:', userData);
+      console.log('Teléfono del usuario en handlePlanSelection:', userData.phone);
+      
+      // Intentar obtener datos del usuario desde localStorage si no están en company
+      if (!userData.phone) {
+        const storedCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+        console.log('Datos de la empresa en localStorage (handlePlanSelection):', storedCompanyData);
+        if (storedCompanyData.user_data && storedCompanyData.user_data.phone) {
+          userData.phone = storedCompanyData.user_data.phone;
+          console.log('Teléfono obtenido desde localStorage (handlePlanSelection):', userData.phone);
+        }
+      }
       
       // Obtener el código de la empresa
       let companyCode = company.employee_code;
@@ -287,7 +319,10 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         ...productData
       };
       
-      await saveSelectedPlan(planData);
+      console.log('Datos del plan a guardar:', planData);
+      
+      const result = await saveSelectedPlan(planData);
+      console.log('Resultado de guardar plan seleccionado:', result);
       
       // Construir el mensaje con la información del plan
       let message = `¡Hola! 👋
