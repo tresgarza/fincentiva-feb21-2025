@@ -124,22 +124,23 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
   // Función para guardar la simulación en Supabase según el tipo
   const saveSimulation = async (plans) => {
     try {
-      // Obtener datos del usuario desde localStorage
-      const userData = company.user_data || {};
+      // Obtener datos del usuario desde company o localStorage
+      let userData = company.user_data || {};
+      
+      // Si no hay datos de usuario en company, intentar obtenerlos desde localStorage
+      if (!userData.phone) {
+        const storedCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+        if (storedCompanyData.user_data) {
+          userData = {
+            ...userData,
+            ...storedCompanyData.user_data
+          };
+        }
+      }
       
       // Log para depurar
       console.log('Datos del usuario en saveSimulation:', userData);
       console.log('Teléfono del usuario:', userData.phone);
-      
-      // Intentar obtener datos del usuario desde localStorage si no están en company
-      if (!userData.phone) {
-        const storedCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
-        console.log('Datos de la empresa en localStorage:', storedCompanyData);
-        if (storedCompanyData.user_data && storedCompanyData.user_data.phone) {
-          userData.phone = storedCompanyData.user_data.phone;
-          console.log('Teléfono obtenido desde localStorage:', userData.phone);
-        }
-      }
       
       // Obtener el código de la empresa, preferiblemente del campo employee_code
       let companyCode = company.employee_code;
@@ -273,20 +274,22 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         productData.requested_amount = parseFloat(product.price) || 0;
       }
       
-      // Obtener datos del usuario
-      const userData = company.user_data || {};
-      console.log('Datos del usuario en handlePlanSelection:', userData);
-      console.log('Teléfono del usuario en handlePlanSelection:', userData.phone);
+      // Obtener datos del usuario desde company o localStorage
+      let userData = company.user_data || {};
       
-      // Intentar obtener datos del usuario desde localStorage si no están en company
+      // Si no hay datos de usuario en company, intentar obtenerlos desde localStorage
       if (!userData.phone) {
         const storedCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
-        console.log('Datos de la empresa en localStorage (handlePlanSelection):', storedCompanyData);
-        if (storedCompanyData.user_data && storedCompanyData.user_data.phone) {
-          userData.phone = storedCompanyData.user_data.phone;
-          console.log('Teléfono obtenido desde localStorage (handlePlanSelection):', userData.phone);
+        if (storedCompanyData.user_data) {
+          userData = {
+            ...userData,
+            ...storedCompanyData.user_data
+          };
         }
       }
+      
+      console.log('Datos del usuario en handlePlanSelection:', userData);
+      console.log('Teléfono del usuario en handlePlanSelection:', userData.phone);
       
       // Obtener el código de la empresa
       let companyCode = company.employee_code;
