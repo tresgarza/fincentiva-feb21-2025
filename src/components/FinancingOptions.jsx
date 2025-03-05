@@ -115,32 +115,18 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       // Obtener datos del usuario desde localStorage
       const userData = company.user_data || {};
       
-      // DEBUGGING: Mostrar información de diagnóstico
-      console.log("DEBUGGING saveSimulation - company object:", company);
-      
-      // Verificar si tenemos el código de la empresa
-      let companyCode = company.code;
-      console.log("DEBUGGING - Código directo del objeto company:", companyCode);
+      // Obtener el código de la empresa, preferiblemente del campo employee_code
+      let companyCode = company.employee_code;
       
       // Si no hay código en el objeto company, intentar obtenerlo del localStorage
       if (!companyCode) {
         const storedCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
-        console.log("DEBUGGING - Datos de empresa en localStorage:", storedCompanyData);
+        companyCode = storedCompanyData.employee_code || storedCompanyData.code;
         
-        companyCode = storedCompanyData.code || storedCompanyData.employee_code;
-        console.log("DEBUGGING - Código obtenido de localStorage:", companyCode);
-        
-        // Si aún no tenemos código, usar el employeeCode si está disponible
-        if (!companyCode && company.employee_code) {
-          companyCode = company.employee_code;
-          console.log("DEBUGGING - Usando employee_code como alternativa:", companyCode);
-        }
-        
-        // Si aún no tenemos código, usar cualquier identificador disponible o un valor predeterminado
+        // Si aún no tenemos código, usar el ID como último recurso
         if (!companyCode) {
-          // Usar el ID de la empresa o un valor genérico como último recurso
           companyCode = company.id || "COMPANY-" + Math.floor(Math.random() * 1000);
-          console.log("DEBUGGING - Usando ID o valor genérico como último recurso:", companyCode);
+          console.log('Advertencia: Usando ID o valor generado como código de empresa');
         }
       }
       
@@ -153,14 +139,12 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         user_last_name: userData.lastName || '',
         company_id: company.id,
         company_name: company.name,
-        company_code: companyCode, // Usar el código obtenido
+        company_code: companyCode,
         user_income: parseFloat(company.monthly_income),
         payment_frequency: company.payment_frequency,
         monthly_income: parseFloat(company.monthly_income),
         recommended_plans: plans
       };
-      
-      console.log("DEBUGGING - Datos que se enviarán a Supabase:", commonData);
       
       let result;
       
