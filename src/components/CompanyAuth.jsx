@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { getCompanies, getByCode } from '../services/api';
 import Button from './Button';
-import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt, FaCalendarAlt, FaUser } from 'react-icons/fa';
+import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt, FaCalendarAlt, FaUser, FaPhone } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Typewriter from 'typewriter-effect';
 
@@ -10,12 +10,42 @@ const CompanyAuth = ({ onAuthenticated }) => {
   const [paymentFrequency, setPaymentFrequency] = useState('monthly');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Validación del teléfono (10 dígitos)
+  const validatePhone = (value) => {
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(value)) {
+      setPhoneError('El teléfono debe tener 10 dígitos numéricos');
+      return false;
+    }
+    setPhoneError('');
+    return true;
+  };
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Solo permitir dígitos
+    setPhone(value);
+    if (value.length > 0) {
+      validatePhone(value);
+    } else {
+      setPhoneError('');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setPhoneError('');
+    
+    // Validar teléfono antes de enviar
+    if (!validatePhone(phone)) {
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -26,7 +56,8 @@ const CompanyAuth = ({ onAuthenticated }) => {
         payment_frequency: paymentFrequency,
         user_data: {
           firstName,
-          lastName
+          lastName,
+          phone
         }
       };
       onAuthenticated(companyWithUserData);
@@ -172,6 +203,35 @@ const CompanyAuth = ({ onAuthenticated }) => {
                 />
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#33FF57] to-[#33FF57] opacity-0 group-focus-within:opacity-10 transition-opacity pointer-events-none"></div>
               </div>
+            </div>
+
+            {/* Campo de teléfono */}
+            <div className="relative group">
+              <label 
+                htmlFor="phone" 
+                className="block text-sm font-medium text-n-3 mb-2"
+              >
+                Teléfono (10 dígitos)
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <FaPhone className="text-n-4 group-focus-within:text-[#33FF57] transition-colors" />
+                </div>
+                <input
+                  type="tel"
+                  id="phone"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  maxLength={10}
+                  required
+                  className={`w-full pl-12 pr-4 py-3 rounded-lg bg-n-7 text-n-1 border ${phoneError ? 'border-red-500' : 'border-n-6'} focus:outline-none focus:border-[#33FF57] transition-colors placeholder-n-4/50`}
+                  placeholder="Ingresa tu número de teléfono"
+                />
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#33FF57] to-[#33FF57] opacity-0 group-focus-within:opacity-10 transition-opacity pointer-events-none"></div>
+              </div>
+              {phoneError && (
+                <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+              )}
             </div>
 
             <div className="relative group">
