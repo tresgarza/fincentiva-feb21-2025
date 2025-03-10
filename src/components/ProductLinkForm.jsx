@@ -69,6 +69,7 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
         'amazon.com.mx',
         'mercadolibre.com.mx',
         'mercadolibre.com',
+        'a.co',
       ];
       
       const isValidDomain = validDomains.some(domain => parsedUrl.hostname.endsWith(domain));
@@ -76,6 +77,10 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
       if (!isValidDomain) {
         setError("Por favor ingresa un enlace válido de Amazon México o MercadoLibre México");
         return false;
+      }
+      
+      if (parsedUrl.hostname.endsWith('a.co')) {
+        console.log("Enlace acortado de Amazon detectado. El sistema intentará resolverlo automáticamente.");
       }
       
       return true;
