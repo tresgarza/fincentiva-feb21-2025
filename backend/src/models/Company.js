@@ -290,7 +290,10 @@ export class Company {
         payment_frequency: data.payment_frequency,
         payment_day: data.payment_day,
         max_credit_amount: data.max_credit_amount,
-        min_credit_amount: data.min_credit_amount
+        min_credit_amount: data.min_credit_amount,
+        advisor_id: data.advisor_id,
+        advisor_phone: data.advisor_phone,
+        Advisor: data.Advisor
       };
     } catch (error) {
       console.error('Error getting company:', error);

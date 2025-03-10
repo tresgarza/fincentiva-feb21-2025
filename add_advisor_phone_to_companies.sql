@@ -2,7 +2,7 @@
 
 -- 1. Añadir la columna advisor_phone a la tabla companies
 ALTER TABLE companies
-ADD COLUMN advisor_phone TEXT;
+ADD COLUMN IF NOT EXISTS advisor_phone TEXT;
 
 -- 2. Actualizar la columna advisor_phone con los teléfonos de los asesores asignados
 UPDATE companies c
@@ -27,37 +27,70 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_update_advisor_phone
+CREATE TRIGGER IF NOT EXISTS trigger_update_advisor_phone
 AFTER INSERT OR UPDATE OF advisor_id ON companies
 FOR EACH ROW
 EXECUTE FUNCTION update_advisor_phone();
 
--- 5. También actualizar manualmente los teléfonos para las empresas que tienen el campo Advisor pero no advisor_id
-UPDATE companies c
-SET advisor_phone = a.phone
-FROM advisors a
-WHERE c.advisor_id IS NULL 
-  AND c."Advisor" IS NOT NULL 
-  AND c."Advisor" ILIKE '%' || a.name || '%'
-  AND c.advisor_phone IS NULL;
+-- 5. Actualizaciones específicas para empresas que necesitan mapeos manuales
 
--- 6. Actualización específica para empresas conocidas que puedan no estar correctamente mapeadas
+-- Taquería "Tía Carmen"
 UPDATE companies 
 SET advisor_phone = '8211110095'  -- Angelica Elizondo
-WHERE employee_code = 'CAR5799' AND advisor_phone IS NULL;  -- Taquería "Tía Carmen"
+WHERE (employee_code = 'CAR5799' OR name LIKE '%Carmen%') AND advisor_phone IS NULL;
 
+-- CADTONER
 UPDATE companies 
 SET advisor_phone = '8113800021'  -- Alexis Medina
-WHERE employee_code = 'CAD0227' AND advisor_phone IS NULL;  -- CADTONER
+WHERE (employee_code = 'CAD0227' OR name LIKE '%CADTONER%') AND advisor_phone IS NULL;
 
+-- Grupo Hower
 UPDATE companies 
-SET advisor_phone = '8211110095'  -- Angelica Elizondo
-WHERE employee_code IN ('TRA5976', 'PRE2030', 'RAQ3329') AND advisor_phone IS NULL;  -- Empresas de Angelica
+SET advisor_phone = '8120007707'  -- Sofía Esparza
+WHERE (employee_code = 'HOW1234' OR name LIKE '%Hower%') AND advisor_phone IS NULL;
 
+-- Cartotec
 UPDATE companies 
 SET advisor_phone = '8117919076'  -- Edgar Benavides
-WHERE employee_code = 'CAR9424' AND advisor_phone IS NULL;  -- Cartotec
+WHERE (employee_code = 'CAR9424' OR name LIKE '%Cartotec%') AND advisor_phone IS NULL;
 
+-- Industrias GSL
 UPDATE companies 
 SET advisor_phone = '8116364522'  -- Diego Garza
-WHERE employee_code = 'GSL9775' AND advisor_phone IS NULL;  -- Industrias GSL 
+WHERE (employee_code = 'GSL9775' OR name LIKE '%GSL%') AND advisor_phone IS NULL;
+
+-- 6. Actualizar usando la columna Advisor para cualquier registro que siga sin teléfono
+
+-- Sofía Esparza
+UPDATE companies
+SET advisor_phone = '8120007707'
+WHERE (Advisor LIKE '%Sofia%' OR Advisor LIKE '%Esparza%') AND advisor_phone IS NULL;
+
+-- Angelica Elizondo
+UPDATE companies
+SET advisor_phone = '8211110095'
+WHERE (Advisor LIKE '%Angelica%' OR Advisor LIKE '%Elizondo%') AND advisor_phone IS NULL;
+
+-- Alexis Medina
+UPDATE companies
+SET advisor_phone = '8113800021'
+WHERE (Advisor LIKE '%Alexis%' OR Advisor LIKE '%Medina%') AND advisor_phone IS NULL;
+
+-- Edgar Benavides
+UPDATE companies
+SET advisor_phone = '8117919076'
+WHERE (Advisor LIKE '%Edgar%' OR Advisor LIKE '%Benavides%') AND advisor_phone IS NULL;
+
+-- Diego Garza 
+UPDATE companies
+SET advisor_phone = '8116364522'
+WHERE (Advisor LIKE '%Diego%' OR Advisor LIKE '%Garza%') AND advisor_phone IS NULL;
+
+-- 7. Asegurarse de que todos los teléfonos que se guarden tengan 10 dígitos, sin el prefijo 52 o formato internacional
+UPDATE companies 
+SET advisor_phone = REGEXP_REPLACE(advisor_phone, '[^0-9]', '', 'g')
+WHERE advisor_phone IS NOT NULL;
+
+UPDATE companies 
+SET advisor_phone = RIGHT(advisor_phone, 10)
+WHERE LENGTH(advisor_phone) > 10 AND advisor_phone IS NOT NULL; 

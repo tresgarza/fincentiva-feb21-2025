@@ -128,6 +128,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     const loadAdvisor = async () => {
       if (company && company.id) {
         console.log('Evaluando si es necesario cargar datos del advisor para:', company.name);
+        console.log('Empresa completa:', JSON.stringify(company));
         
         // Si la empresa ya tiene el teléfono del asesor, no es necesario hacer más consultas
         if (company.advisor_phone) {
@@ -286,6 +287,10 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     setShowLoadingPopup(true);
     
     try {
+      // Verificación y log de información de la empresa
+      console.log('Información completa de la empresa:', JSON.stringify(company));
+      console.log('Teléfono del asesor en la empresa:', company.advisor_phone);
+      
       // Configurar animación por pasos
       let stepCount = 0;
       const stepInterval = setInterval(() => {
@@ -402,16 +407,21 @@ Me gustaría recibir más información sobre el proceso de solicitud.
       // Obtener el número de teléfono del asesor directamente de la empresa
       let phoneNumber = '5218116364522'; // Número por defecto - Diego Garza
       
+      // Verificamos y logueamos la información del teléfono
+      console.log('Verificando teléfono del asesor para empresa:', company.name);
+      console.log('Teléfono guardado en la empresa:', company.advisor_phone);
+      
       // Usar directamente el teléfono de la empresa si está disponible
       if (company.advisor_phone) {
         // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
         const cleanPhone = company.advisor_phone.replace(/\D/g, '');
         
         // Asegurarse de que tiene el formato correcto para WhatsApp
-        phoneNumber = cleanPhone.startsWith('52') ? cleanPhone : `52${cleanPhone}`;
-        
-        // Asegurarse de que si ya tiene 10 dígitos, se le agregue el prefijo 52
-        if (cleanPhone.length === 10) {
+        if (cleanPhone.startsWith('52')) {
+          phoneNumber = cleanPhone;
+        } else if (cleanPhone.length === 10) {
+          phoneNumber = `52${cleanPhone}`;
+        } else {
           phoneNumber = `52${cleanPhone}`;
         }
         
@@ -419,10 +429,15 @@ Me gustaría recibir más información sobre el proceso de solicitud.
       } else if (advisorData && advisorData.phone) {
         // Como respaldo, usar el teléfono del advisor obtenido de la consulta
         const cleanPhone = advisorData.phone.replace(/\D/g, '');
-        phoneNumber = cleanPhone.startsWith('52') ? cleanPhone : `52${cleanPhone}`;
-        if (cleanPhone.length === 10) {
+        
+        if (cleanPhone.startsWith('52')) {
+          phoneNumber = cleanPhone;
+        } else if (cleanPhone.length === 10) {
+          phoneNumber = `52${cleanPhone}`;
+        } else {
           phoneNumber = `52${cleanPhone}`;
         }
+        
         console.log('Usando número de teléfono del advisor obtenido por consulta:', phoneNumber);
       } else {
         console.warn('No se encontró teléfono del asesor, usando número por defecto o específico');
@@ -435,13 +450,31 @@ Me gustaría recibir más información sobre el proceso de solicitud.
           'PRE2030': '5218211110095', // Angelica Elizondo - Presidencia
           'RAQ3329': '5218211110095', // Angelica Elizondo - Doña Raquel
           'CAR9424': '5218117919076', // Edgar Benavides - Cartotec
-          'GSL9775': '5218116364522'  // Diego Garza - Industrias GSL
+          'GSL9775': '5218116364522',  // Diego Garza - Industrias GSL
+          // Agregar otros mapeos específicos según sea necesario
+          'HOW1234': '5218120007707'   // Sofía Esparza - Grupo Hower
         };
         
         // Buscar por código de empresa como último respaldo
         if (company.employee_code && companyCodeToPhoneMap[company.employee_code]) {
           phoneNumber = companyCodeToPhoneMap[company.employee_code];
           console.log('Usando número específico para código de empresa:', company.employee_code, phoneNumber);
+        } else {
+          // Si todo lo demás falla, intentamos buscar coincidencias parciales en el nombre de la empresa
+          const companyNameKeywords = {
+            'Hower': '5218120007707',   // Sofía Esparza
+            'Sofia': '5218120007707',   // Sofía Esparza
+            'Carmen': '5218211110095',  // Angelica Elizondo
+            'CADTONER': '5218113800021' // Alexis Medina
+          };
+          
+          for (const keyword in companyNameKeywords) {
+            if (company.name && company.name.includes(keyword)) {
+              phoneNumber = companyNameKeywords[keyword];
+              console.log('Coincidencia por palabra clave en nombre:', keyword, phoneNumber);
+              break;
+            }
+          }
         }
       }
       
