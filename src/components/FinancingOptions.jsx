@@ -129,7 +129,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       if (company && company.id) {
         console.log('Cargando advisor para empresa:', company);
         
-        // Caso especial para CADTONER si es necesario
+        // Caso especial para empresas específicas
         if (company.name === 'CADTONER' || company.employee_code === 'CAD0227') {
           console.log('Detectada empresa CADTONER, buscando advisor específico');
           try {
@@ -150,6 +150,27 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
           }
         }
         
+        // Caso especial para Taquería "Tía Carmen"
+        if (company.name.includes('Carmen') || company.employee_code === 'CAR5799') {
+          console.log('Detectada empresa Taquería "Tía Carmen", buscando advisor específico');
+          try {
+            // Buscar Angelica Elizondo directamente si es Tía Carmen
+            const { data, error } = await supabase
+              .from('advisors')
+              .select('*')
+              .eq('access_code', '0095')
+              .single();
+              
+            if (!error && data) {
+              console.log('Advisor encontrado para Taquería "Tía Carmen":', data);
+              setAdvisorData(data);
+              return;
+            }
+          } catch (e) {
+            console.error('Error al buscar advisor específico para Taquería "Tía Carmen":', e);
+          }
+        }
+        
         try {
           const result = await getCompanyAdvisor(company.id);
           console.log('Resultado de getCompanyAdvisor:', result);
@@ -160,27 +181,59 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
           } else {
             console.warn('No se pudo obtener el advisor asociado a la empresa:', result.error);
             
-            // Intento alternativo por nombre de empresa
-            if (company.name) {
+            // Intento alternativo por nombre de empresa o código
+            if (company.name || company.employee_code) {
               try {
-                console.log('Intentando encontrar advisor por nombre de empresa:', company.name);
-                let advisorName = '';
+                console.log('Intentando búsqueda alternativa para:', company.name, company.employee_code);
+                let advisorAccessCode = '';
                 
-                // Mapeo de empresas a nombres de asesores (para casos especiales)
-                if (company.name.includes('CADTONER')) {
-                  advisorName = 'Alexis Medina';
+                // Mapeo de empresas a códigos de acceso de asesores (para casos especiales)
+                // Este mapeo es útil cuando fallan todas las demás opciones
+                const companyToAdvisorMap = {
+                  'CADTONER': '0021',
+                  'CAD0227': '0021',
+                  'Carmen': '0095',
+                  'CAR5799': '0095',
+                  'GSL9775': '4522', // Diego Garza
+                  'CAR9424': '9076'  // Edgar Benavides
+                };
+                
+                // Buscar por nombre de empresa
+                for (const key in companyToAdvisorMap) {
+                  if (company.name && company.name.includes(key) || company.employee_code === key) {
+                    advisorAccessCode = companyToAdvisorMap[key];
+                    break;
+                  }
                 }
                 
-                if (advisorName) {
+                if (advisorAccessCode) {
+                  console.log('Buscando advisor por código de acceso específico:', advisorAccessCode);
                   const { data, error } = await supabase
                     .from('advisors')
                     .select('*')
-                    .ilike('name', `%${advisorName}%`)
+                    .eq('access_code', advisorAccessCode)
                     .single();
                     
                   if (!error && data) {
-                    console.log('Advisor encontrado por nombre de empresa:', data);
+                    console.log('Advisor encontrado por mapeo específico:', data);
                     setAdvisorData(data);
+                    return;
+                  }
+                }
+                
+                // Si aún no encontramos, buscamos por el campo Advisor
+                if (company.Advisor) {
+                  console.log('Buscando por campo Advisor:', company.Advisor);
+                  const { data, error } = await supabase
+                    .from('advisors')
+                    .select('*')
+                    .ilike('name', `%${company.Advisor.replace(/['"áéíóúÁÉÍÓÚ]/g, '%')}%`)
+                    .limit(1);
+                    
+                  if (!error && data && data.length > 0) {
+                    console.log('Advisor encontrado por campo Advisor:', data[0]);
+                    setAdvisorData(data[0]);
+                    return;
                   }
                 }
               } catch (e) {
@@ -441,7 +494,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
       const encodedMessage = encodeURIComponent(message);
       
       // Obtener el número de teléfono del advisor o usar el número por defecto
-      let phoneNumber = '5218116364522'; // Número por defecto
+      let phoneNumber = '5218116364522'; // Número por defecto - Diego Garza
       
       if (advisorData && advisorData.phone) {
         // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
@@ -456,15 +509,47 @@ Me gustaría recibir más información sobre el proceso de solicitud.
       } else {
         console.warn('No se encontró el advisor asociado a la empresa, usando número por defecto');
         
-        // Caso especial para CADTONER
-        if (company && (company.name === 'CADTONER' || company.employee_code === 'CAD0227')) {
-          // Número de Alexis Medina
-          phoneNumber = '5218113800021';
-          console.log('Usando número específico para CADTONER:', phoneNumber);
+        // Mapeo de códigos de empresa a números de teléfono de asesores
+        const companyCodeToPhoneMap = {
+          'CAD0227': '5218113800021', // Alexis Medina - CADTONER
+          'CAR5799': '5218211110095', // Angelica Elizondo - Taquería "Tía Carmen"
+          'TRA5976': '5218211110095', // Angelica Elizondo - Transportes
+          'PRE2030': '5218211110095', // Angelica Elizondo - Presidencia
+          'RAQ3329': '5218211110095', // Angelica Elizondo - Doña Raquel
+          'CAR9424': '5218117919076', // Edgar Benavides - Cartotec
+          'GSL9775': '5218116364522'  // Diego Garza - Industrias GSL
+        };
+        
+        // Mapeo de nombres de empresa a números de teléfono de asesores
+        const companyNameToPhoneMap = {
+          'CADTONER': '5218113800021',
+          'Carmen': '5218211110095',
+          'Transportes': '5218211110095',
+          'Presidencia': '5218211110095',
+          'Raquel': '5218211110095',
+          'Cartotec': '5218117919076',
+          'Industrias GSL': '5218116364522'
+        };
+        
+        // Buscar primero por código de empresa
+        if (company.employee_code && companyCodeToPhoneMap[company.employee_code]) {
+          phoneNumber = companyCodeToPhoneMap[company.employee_code];
+          console.log('Usando número específico para código de empresa:', company.employee_code, phoneNumber);
+        } 
+        // Si no se encuentra por código, buscar por nombre de empresa
+        else if (company.name) {
+          for (const key in companyNameToPhoneMap) {
+            if (company.name.includes(key)) {
+              phoneNumber = companyNameToPhoneMap[key];
+              console.log('Usando número específico para nombre de empresa:', key, phoneNumber);
+              break;
+            }
+          }
         }
       }
       
       // Redirigir a WhatsApp con el número del advisor o el predeterminado
+      console.log('Abriendo WhatsApp con el número:', phoneNumber);
       window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
       
       showNotification("¡Plan seleccionado correctamente!");

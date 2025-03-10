@@ -133,32 +133,69 @@ export const getCompanyAdvisor = async (companyId) => {
     
     console.log('Datos de la empresa obtenidos:', companyData);
     
+    // Mapeo especial de códigos de empresa a códigos de advisor
+    const companyCodeToAdvisorMap = {
+      'CAD0227': '0021', // Alexis Medina - CADTONER
+      'CAR5799': '0095', // Angelica Elizondo - Tía Carmen
+      'TRA5976': '0095', // Angelica Elizondo - Transportes
+      'PRE2030': '0095', // Angelica Elizondo - Presidencia
+      'RAQ3329': '0095', // Angelica Elizondo - Doña Raquel
+      'CAR9424': '9076', // Edgar Benavides - Cartotec
+      'GSL9775': '4522'  // Diego Garza - Industrias GSL
+    };
+    
+    // Verificar si hay un mapeo directo por código de empresa
+    if (companyData.employee_code && companyCodeToAdvisorMap[companyData.employee_code]) {
+      const advisorCode = companyCodeToAdvisorMap[companyData.employee_code];
+      console.log('Usando mapeo directo por código de empresa:', companyData.employee_code, '→', advisorCode);
+      
+      const { data: advisorByCode, error: advisorByCodeError } = await supabase
+        .from('advisors')
+        .select('*')
+        .eq('access_code', advisorCode)
+        .single();
+        
+      if (!advisorByCodeError && advisorByCode) {
+        console.log('Advisor encontrado por mapeo directo:', advisorByCode);
+        
+        // Actualizar la empresa con el advisor_id encontrado
+        await supabase
+          .from('companies')
+          .update({ advisor_id: advisorByCode.id })
+          .eq('id', companyId);
+          
+        return { success: true, data: advisorByCode };
+      }
+    }
+    
     // Si no tiene advisor_id pero tiene la columna texto Advisor, intentamos buscar el advisor por nombre
     if (!companyData.advisor_id && companyData.Advisor) {
       console.log('Buscando advisor por nombre:', companyData.Advisor);
       
+      // Limpiar el nombre para la búsqueda (quitar acentos, etc.)
+      const cleanName = companyData.Advisor
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/['"]/g, "");
+      
+      console.log('Nombre limpio para búsqueda:', cleanName);
+      
       const { data: advisorByName, error: advisorByNameError } = await supabase
         .from('advisors')
         .select('*')
-        .ilike('name', `%${companyData.Advisor}%`)
-        .single();
+        .ilike('name', `%${cleanName}%`)
+        .limit(1);
         
-      if (!advisorByNameError && advisorByName) {
-        console.log('Advisor encontrado por nombre:', advisorByName);
+      if (!advisorByNameError && advisorByName && advisorByName.length > 0) {
+        console.log('Advisor encontrado por nombre:', advisorByName[0]);
         
         // Actualizar la empresa con el advisor_id encontrado
-        const { error: updateError } = await supabase
+        await supabase
           .from('companies')
-          .update({ advisor_id: advisorByName.id })
+          .update({ advisor_id: advisorByName[0].id })
           .eq('id', companyId);
           
-        if (updateError) {
-          console.warn('No se pudo actualizar la empresa con el advisor_id:', updateError);
-        } else {
-          console.log('Empresa actualizada con advisor_id:', advisorByName.id);
-        }
-        
-        return { success: true, data: advisorByName };
+        return { success: true, data: advisorByName[0] };
       } else {
         console.warn('No se encontró el advisor por nombre:', companyData.Advisor);
       }
@@ -183,8 +220,49 @@ export const getCompanyAdvisor = async (companyId) => {
       return { success: true, data: advisorData };
     }
     
+    // Intentar encontrar por nombre de empresa (útil para casos específicos)
+    if (companyData.name) {
+      console.log('Intentando buscar por nombre de empresa:', companyData.name);
+      
+      // Mapeo de palabras clave de empresas a asesores
+      const keywordToAdvisorMap = {
+        'Carmen': '0095', // Angelica Elizondo
+        'Transportes': '0095', // Angelica Elizondo
+        'Presidencia': '0095', // Angelica Elizondo
+        'Raquel': '0095', // Angelica Elizondo
+        'CADTONER': '0021', // Alexis Medina
+        'Cartotec': '9076', // Edgar Benavides
+        'GSL': '4522' // Diego Garza
+      };
+      
+      for (const keyword in keywordToAdvisorMap) {
+        if (companyData.name.includes(keyword)) {
+          const advisorCode = keywordToAdvisorMap[keyword];
+          console.log('Coincidencia por palabra clave:', keyword, '→', advisorCode);
+          
+          const { data: advisorByKey, error: advisorByKeyError } = await supabase
+            .from('advisors')
+            .select('*')
+            .eq('access_code', advisorCode)
+            .single();
+            
+          if (!advisorByKeyError && advisorByKey) {
+            console.log('Advisor encontrado por palabra clave:', advisorByKey);
+            
+            // Actualizar la empresa con el advisor_id encontrado
+            await supabase
+              .from('companies')
+              .update({ advisor_id: advisorByKey.id })
+              .eq('id', companyId);
+              
+            return { success: true, data: advisorByKey };
+          }
+        }
+      }
+    }
+    
     // Si llegamos aquí, no se encontró el advisor
-    console.warn('La empresa no tiene un advisor asignado');
+    console.warn('La empresa no tiene un advisor asignado o no se pudo encontrar');
     return { success: false, error: 'La empresa no tiene un advisor asignado' };
   } catch (error) {
     console.error('Error al obtener el advisor de la empresa:', error);
