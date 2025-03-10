@@ -3,6 +3,7 @@ import Button from "./Button";
 import { API_URL } from '../config/api';
 import { saveProductSimulation, saveCashRequest, saveSelectedPlan, getCompanyAdvisor } from '../services/supabaseServices';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../config/supabase';
 
 const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) => {
   const [paymentOptions, setPaymentOptions] = useState([]);
@@ -126,13 +127,66 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     // Cargar el advisor asociado a la empresa
     const loadAdvisor = async () => {
       if (company && company.id) {
+        console.log('Cargando advisor para empresa:', company);
+        
+        // Caso especial para CADTONER si es necesario
+        if (company.name === 'CADTONER' || company.employee_code === 'CAD0227') {
+          console.log('Detectada empresa CADTONER, buscando advisor específico');
+          try {
+            // Buscar Alexis Medina directamente si es CADTONER
+            const { data, error } = await supabase
+              .from('advisors')
+              .select('*')
+              .eq('access_code', '0021')
+              .single();
+              
+            if (!error && data) {
+              console.log('Advisor encontrado para CADTONER:', data);
+              setAdvisorData(data);
+              return;
+            }
+          } catch (e) {
+            console.error('Error al buscar advisor específico para CADTONER:', e);
+          }
+        }
+        
         try {
           const result = await getCompanyAdvisor(company.id);
+          console.log('Resultado de getCompanyAdvisor:', result);
+          
           if (result.success && result.data) {
             setAdvisorData(result.data);
             console.log('Advisor asociado a la empresa:', result.data);
           } else {
             console.warn('No se pudo obtener el advisor asociado a la empresa:', result.error);
+            
+            // Intento alternativo por nombre de empresa
+            if (company.name) {
+              try {
+                console.log('Intentando encontrar advisor por nombre de empresa:', company.name);
+                let advisorName = '';
+                
+                // Mapeo de empresas a nombres de asesores (para casos especiales)
+                if (company.name.includes('CADTONER')) {
+                  advisorName = 'Alexis Medina';
+                }
+                
+                if (advisorName) {
+                  const { data, error } = await supabase
+                    .from('advisors')
+                    .select('*')
+                    .ilike('name', `%${advisorName}%`)
+                    .single();
+                    
+                  if (!error && data) {
+                    console.log('Advisor encontrado por nombre de empresa:', data);
+                    setAdvisorData(data);
+                  }
+                }
+              } catch (e) {
+                console.error('Error en búsqueda alternativa de advisor:', e);
+              }
+            }
           }
         } catch (error) {
           console.error('Error al cargar el advisor:', error);
@@ -401,6 +455,13 @@ Me gustaría recibir más información sobre el proceso de solicitud.
         console.log('Usando número de teléfono del advisor:', phoneNumber);
       } else {
         console.warn('No se encontró el advisor asociado a la empresa, usando número por defecto');
+        
+        // Caso especial para CADTONER
+        if (company && (company.name === 'CADTONER' || company.employee_code === 'CAD0227')) {
+          // Número de Alexis Medina
+          phoneNumber = '5218113800021';
+          console.log('Usando número específico para CADTONER:', phoneNumber);
+        }
       }
       
       // Redirigir a WhatsApp con el número del advisor o el predeterminado

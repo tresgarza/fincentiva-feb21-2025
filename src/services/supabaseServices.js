@@ -117,30 +117,75 @@ const updateCashRequestWithPlan = async (requestId, planId) => {
  */
 export const getCompanyAdvisor = async (companyId) => {
   try {
-    // Primero obtenemos la empresa con su advisor_id
+    console.log('Buscando advisor para empresa con ID:', companyId);
+    
+    // Primero obtenemos la empresa para verificar si tiene un advisor_id
     const { data: companyData, error: companyError } = await supabase
       .from('companies')
-      .select('advisor_id')
+      .select('advisor_id, name, employee_code, Advisor')  // Incluir nombre para depuración
       .eq('id', companyId)
       .single();
 
-    if (companyError) throw companyError;
-    
-    if (!companyData.advisor_id) {
-      console.warn('La empresa no tiene un advisor asignado');
-      return { success: false, error: 'La empresa no tiene un advisor asignado' };
+    if (companyError) {
+      console.error('Error al consultar la empresa:', companyError);
+      throw companyError;
     }
+    
+    console.log('Datos de la empresa obtenidos:', companyData);
+    
+    // Si no tiene advisor_id pero tiene la columna texto Advisor, intentamos buscar el advisor por nombre
+    if (!companyData.advisor_id && companyData.Advisor) {
+      console.log('Buscando advisor por nombre:', companyData.Advisor);
+      
+      const { data: advisorByName, error: advisorByNameError } = await supabase
+        .from('advisors')
+        .select('*')
+        .ilike('name', `%${companyData.Advisor}%`)
+        .single();
+        
+      if (!advisorByNameError && advisorByName) {
+        console.log('Advisor encontrado por nombre:', advisorByName);
+        
+        // Actualizar la empresa con el advisor_id encontrado
+        const { error: updateError } = await supabase
+          .from('companies')
+          .update({ advisor_id: advisorByName.id })
+          .eq('id', companyId);
+          
+        if (updateError) {
+          console.warn('No se pudo actualizar la empresa con el advisor_id:', updateError);
+        } else {
+          console.log('Empresa actualizada con advisor_id:', advisorByName.id);
+        }
+        
+        return { success: true, data: advisorByName };
+      } else {
+        console.warn('No se encontró el advisor por nombre:', companyData.Advisor);
+      }
+    }
+    
+    // Si tiene advisor_id, lo usamos para obtener los datos del advisor
+    if (companyData.advisor_id) {
+      console.log('Buscando advisor con ID:', companyData.advisor_id);
+      
+      const { data: advisorData, error: advisorError } = await supabase
+        .from('advisors')
+        .select('*')
+        .eq('id', companyData.advisor_id)
+        .single();
 
-    // Luego obtenemos los datos del advisor
-    const { data: advisorData, error: advisorError } = await supabase
-      .from('advisors')
-      .select('*')
-      .eq('id', companyData.advisor_id)
-      .single();
-
-    if (advisorError) throw advisorError;
-
-    return { success: true, data: advisorData };
+      if (advisorError) {
+        console.error('Error al consultar el advisor:', advisorError);
+        throw advisorError;
+      }
+      
+      console.log('Advisor encontrado:', advisorData);
+      return { success: true, data: advisorData };
+    }
+    
+    // Si llegamos aquí, no se encontró el advisor
+    console.warn('La empresa no tiene un advisor asignado');
+    return { success: false, error: 'La empresa no tiene un advisor asignado' };
   } catch (error) {
     console.error('Error al obtener el advisor de la empresa:', error);
     return { success: false, error: error.message };
