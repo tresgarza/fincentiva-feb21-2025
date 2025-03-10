@@ -5,6 +5,7 @@
  */
 
 import axios from 'axios';
+import fetch from 'node-fetch'; // Asegúrate de instalar con: npm install node-fetch
 
 // El enlace acortado de Amazon que queremos probar
 const shortenedUrl = 'https://a.co/d/93pZDDC'; // Reemplaza esto con tu enlace de prueba
@@ -12,12 +13,36 @@ const shortenedUrl = 'https://a.co/d/93pZDDC'; // Reemplaza esto con tu enlace d
 async function resolveShortUrl(url) {
   console.log('Resolving shortened URL:', url);
   
+  // MÉTODO 1: Usando fetch API (más simple y directo)
   try {
-    // Intento 1: Usar HEAD request (más rápido)
-    console.log('Attempting HEAD request...');
-    const headResponse = await axios.head(url, {
-      maxRedirects: 10,
-      timeout: 10000,
+    console.log('\nTrying with fetch API (follow redirects)...');
+    const fetchResponse = await fetch(url, {
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+      }
+    });
+    
+    const finalUrl = fetchResponse.url;
+    console.log('Final URL from fetch:', finalUrl);
+    
+    if (finalUrl && (finalUrl.includes('amazon.com') || finalUrl.includes('amazon.com.mx'))) {
+      console.log('SUCCESS: Resolved to Amazon URL with fetch method!');
+      return finalUrl;
+    }
+    
+    console.log('Fetch did not resolve to Amazon URL, trying other methods...');
+  } catch (fetchError) {
+    console.error('Error with fetch method:', fetchError.message);
+    console.log('Fetch method failed, falling back to other methods...');
+  }
+  
+  // MÉTODO 2: Usando axios para obtener el HTML completo y analizarlo
+  try {
+    console.log('\nTrying with axios GET request...');
+    const axiosResponse = await axios.get(url, {
+      maxRedirects: 15,
+      timeout: 15000,
       validateStatus: function (status) {
         return status >= 200 && status < 400;
       },
@@ -26,69 +51,70 @@ async function resolveShortUrl(url) {
       }
     });
     
-    // Intentar diferentes métodos para obtener la URL final
-    let fullUrl = '';
+    // Analizar el HTML para encontrar la URL de Amazon
+    const html = axiosResponse.data;
+    console.log('Got HTML response, content length:', html.length);
     
-    if (headResponse.request && headResponse.request.res && headResponse.request.res.responseUrl) {
-      fullUrl = headResponse.request.res.responseUrl;
-      console.log('Method 1: Using responseUrl from response.request.res:', fullUrl);
-    } 
-    else if (headResponse.request && headResponse.request.res && headResponse.request.res.req && headResponse.request.res.req.path) {
-      fullUrl = headResponse.request.res.req.path;
-      console.log('Method 2: Using path from response.request.res.req:', fullUrl);
-    }
-    else if (headResponse.request && headResponse.request.path) {
-      fullUrl = headResponse.request.path;
-      console.log('Method 3: Using path from response.request:', fullUrl);
-    }
-    else if (headResponse.request && headResponse.request.responseURL) {
-      fullUrl = headResponse.request.responseURL;
-      console.log('Method 4: Using responseURL from response.request:', fullUrl);
-    }
+    // Varias estrategias para encontrar la URL correcta
+    let amazonUrl = '';
     
-    // Si encontramos una URL válida de Amazon, terminamos
-    if (fullUrl && (fullUrl.includes('amazon.com') || fullUrl.includes('amazon.com.mx'))) {
-      console.log('SUCCESS: Resolved to Amazon URL:', fullUrl);
-      return fullUrl;
-    }
-    
-    // Intento 2: Usar GET request completo y buscar URL canónica
-    console.log('HEAD request did not provide valid URL. Attempting GET request...');
-    const getResponse = await axios.get(url, {
-      maxRedirects: 10,
-      timeout: 10000,
-      validateStatus: function (status) {
-        return status >= 200 && status < 400;
-      },
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
-      }
-    });
-    
-    // Comprobar si la respuesta tiene una URL canónica
-    const html = getResponse.data;
-    console.log('Received HTML content length:', html.length);
-    
-    // Buscar URL canónica en el HTML
+    // Estrategia 1: Buscar enlace canónico
     const canonicalMatch = html.match(/<link rel="canonical" href="([^"]+)"/i);
     if (canonicalMatch && canonicalMatch[1]) {
-      fullUrl = canonicalMatch[1];
-      console.log('Method 5: Found canonical URL in HTML:', fullUrl);
-    } 
-    else if (getResponse.request && getResponse.request.res && getResponse.request.res.responseUrl) {
-      fullUrl = getResponse.request.res.responseUrl;
-      console.log('Method 6: Using responseUrl from GET response:', fullUrl);
+      amazonUrl = canonicalMatch[1];
+      console.log('Found canonical URL:', amazonUrl);
+      if (amazonUrl.includes('amazon.com') || amazonUrl.includes('amazon.com.mx')) {
+        console.log('SUCCESS: Found Amazon URL in canonical link!');
+        return amazonUrl;
+      }
     }
     
-    if (fullUrl && (fullUrl.includes('amazon.com') || fullUrl.includes('amazon.com.mx'))) {
-      console.log('SUCCESS: Resolved to Amazon URL:', fullUrl);
-      return fullUrl;
+    // Estrategia 2: Buscar meta redirección
+    const metaRedirectMatch = html.match(/<meta http-equiv="refresh" content="[^"]*url=([^"]+)"/i);
+    if (metaRedirectMatch && metaRedirectMatch[1]) {
+      amazonUrl = metaRedirectMatch[1];
+      console.log('Found meta redirect URL:', amazonUrl);
+      if (amazonUrl.includes('amazon.com') || amazonUrl.includes('amazon.com.mx')) {
+        console.log('SUCCESS: Found Amazon URL in meta redirect!');
+        return amazonUrl;
+      }
     }
     
-    console.log('FAILED: Could not resolve to valid Amazon URL');
+    // Estrategia 3: Buscar cualquier URL de Amazon en el contenido
+    const amazonUrlMatch = html.match(/https:\/\/(?:www\.)?amazon\.com(?:\.mx)?\/[^\s"']+/i);
+    if (amazonUrlMatch) {
+      amazonUrl = amazonUrlMatch[0];
+      console.log('Found Amazon URL in content:', amazonUrl);
+      if (amazonUrl.includes('amazon.com') || amazonUrl.includes('amazon.com.mx')) {
+        console.log('SUCCESS: Found Amazon URL in HTML content!');
+        return amazonUrl;
+      }
+    }
+    
+    // Estrategia 4: Obtener URL final de axios
+    if (axiosResponse.request && axiosResponse.request.res && axiosResponse.request.res.responseUrl) {
+      amazonUrl = axiosResponse.request.res.responseUrl;
+      console.log('Using axios responseUrl:', amazonUrl);
+      if (amazonUrl.includes('amazon.com') || amazonUrl.includes('amazon.com.mx')) {
+        console.log('SUCCESS: Found Amazon URL from axios response!');
+        return amazonUrl;
+      }
+    }
+    
+    // Si llegamos aquí, revisar si hay captcha u otros problemas
+    if (html.includes('Type the characters you see in this image') || 
+        html.includes('Enter the characters you see below') ||
+        html.includes('Sorry, we just need to make sure you') ||
+        html.includes('robot') || 
+        html.includes('captcha')) {
+      console.log('DETECTED: Amazon is showing a CAPTCHA verification page!');
+      console.log('Preview of HTML:', html.substring(0, 300) + '...');
+    }
+    
+    console.log('FAILED: Could not find Amazon URL in HTML content');
     return null;
   } catch (error) {
-    console.error('Error resolving shortened URL:', error.message);
+    console.error('Error resolving shortened URL with axios:', error.message);
     if (error.response) {
       console.error('Response status:', error.response.status);
     }
@@ -100,11 +126,11 @@ async function resolveShortUrl(url) {
 resolveShortUrl(shortenedUrl)
   .then(fullUrl => {
     if (fullUrl) {
-      console.log('Test completed successfully. Final URL:', fullUrl);
+      console.log('\nTest completed successfully. Final URL:', fullUrl);
     } else {
-      console.log('Test failed. Could not resolve URL.');
+      console.log('\nTest failed. Could not resolve URL.');
     }
   })
   .catch(error => {
-    console.error('Test failed with error:', error);
+    console.error('\nTest failed with error:', error);
   }); 

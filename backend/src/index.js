@@ -93,10 +93,38 @@ app.post('/api/product/info', async (req, res) => {
     if (url.includes('a.co')) {
       console.log('Detected Amazon shortened URL, resolving to full URL...');
       try {
-        // Configuración para seguir redirecciones
-        const response = await axios.head(url, {
-          maxRedirects: 10,
-          timeout: 10000,
+        // SOLUCIÓN MÁS SIMPLE Y DIRECTA: usar fetch para seguir redirecciones
+        // Probamos con esto primero ya que axios puede tener problemas con algunas redirecciones
+        try {
+          console.log('Attempting to resolve with fetch API...');
+          const fetchResponse = await fetch(url, {
+            redirect: 'follow',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+            }
+          });
+          
+          // Obtener la URL final después de las redirecciones
+          const fullUrl = fetchResponse.url;
+          console.log('Resolved short URL with fetch to:', fullUrl);
+          
+          if (fullUrl && (fullUrl.includes('amazon.com.mx') || fullUrl.includes('amazon.com'))) {
+            console.log('Confirmed Amazon URL after resolution, starting scraper...');
+            productData = await scrapeAmazonProduct(fullUrl);
+            // Si llegamos aquí, todo fue exitoso, así que salimos
+            console.log('Successfully processed product with fetch method');
+            res.json(productData);
+            return;
+          }
+        } catch (fetchError) {
+          console.error('Error resolving with fetch:', fetchError);
+          console.log('Falling back to axios method...');
+        }
+        
+        // MÉTODO ALTERNATIVO: Si fetch falla, intentamos con axios
+        const axiosResponse = await axios.get(url, {
+          maxRedirects: 15,
+          timeout: 15000,
           validateStatus: function (status) {
             return status >= 200 && status < 400; // Acepta redirecciones
           },
@@ -105,47 +133,43 @@ app.post('/api/product/info', async (req, res) => {
           }
         });
         
-        // Obtener la URL final después de las redirecciones
+        // Buscar en el HTML para encontrar el enlace de Amazon
+        const html = axiosResponse.data;
+        console.log('Analyzing HTML content to find Amazon link...');
+        
+        // Métodos para encontrar la URL de Amazon en el HTML
         let fullUrl = '';
         
-        // Diferentes formas de obtener la URL final dependiendo de la versión de Axios
-        if (response.request && response.request.res && response.request.res.responseUrl) {
-          fullUrl = response.request.res.responseUrl;
-        } else if (response.request && response.request.res && response.request.res.req && response.request.res.req.path) {
-          fullUrl = response.request.res.req.path;
-        } else if (response.request && response.request.path) {
-          fullUrl = response.request.path;
-        } else if (response.request && response.request.responseURL) {
-          fullUrl = response.request.responseURL;
+        // 1. Buscar URL canónica
+        const canonicalMatch = html.match(/<link rel="canonical" href="([^"]+)"/i);
+        if (canonicalMatch && canonicalMatch[1]) {
+          fullUrl = canonicalMatch[1];
+          console.log('Found canonical URL:', fullUrl);
         }
         
-        console.log('Resolved short URL to:', fullUrl);
-        
-        // Si no pudimos resolver la URL, intentar un método alternativo
+        // 2. Buscar redireccionamiento en meta tags
         if (!fullUrl || !fullUrl.includes('amazon')) {
-          console.log('Failed to resolve URL with HEAD request, trying GET request...');
-          
-          // Intentar con una solicitud GET completa
-          const getResponse = await axios.get(url, {
-            maxRedirects: 10,
-            timeout: 10000,
-            validateStatus: function (status) {
-              return status >= 200 && status < 400; // Acepta redirecciones
-            },
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
-            }
-          });
-          
-          // Buscar URL canónica en el HTML
-          const html = getResponse.data;
-          const canonicalMatch = html.match(/<link rel="canonical" href="([^"]+)"/i);
-          if (canonicalMatch && canonicalMatch[1]) {
-            fullUrl = canonicalMatch[1];
-            console.log('Found canonical URL:', fullUrl);
-          } else if (getResponse.request && getResponse.request.res && getResponse.request.res.responseUrl) {
-            fullUrl = getResponse.request.res.responseUrl;
-            console.log('Using responseUrl from GET request:', fullUrl);
+          const metaRedirectMatch = html.match(/<meta http-equiv="refresh" content="[^"]*url=([^"]+)"/i);
+          if (metaRedirectMatch && metaRedirectMatch[1]) {
+            fullUrl = metaRedirectMatch[1];
+            console.log('Found meta redirect URL:', fullUrl);
+          }
+        }
+        
+        // 3. Buscar en el texto del HTML alguna URL de Amazon
+        if (!fullUrl || !fullUrl.includes('amazon')) {
+          const amazonUrlMatch = html.match(/https:\/\/(?:www\.)?amazon\.com(?:\.mx)?\/[^\s"']+/i);
+          if (amazonUrlMatch) {
+            fullUrl = amazonUrlMatch[0];
+            console.log('Found Amazon URL in HTML content:', fullUrl);
+          }
+        }
+        
+        // 4. Intenta obtener la URL de respuesta de axios
+        if (!fullUrl || !fullUrl.includes('amazon')) {
+          if (axiosResponse.request && axiosResponse.request.res && axiosResponse.request.res.responseUrl) {
+            fullUrl = axiosResponse.request.res.responseUrl;
+            console.log('Using axios responseUrl:', fullUrl);
           }
         }
         
@@ -154,18 +178,28 @@ app.post('/api/product/info', async (req, res) => {
           console.log('Confirmed Amazon URL after resolution, starting scraper...');
           productData = await scrapeAmazonProduct(fullUrl);
         } else {
-          console.log('Unable to resolve to valid Amazon URL:', fullUrl);
-          return res.status(400).json({
-            error: 'URL no soportada después de resolver el enlace corto',
-            message: 'El enlace acortado no lleva a un producto de Amazon válido o no se pudo resolver correctamente'
-          });
+          // Si llegamos aquí, ninguno de los métodos funcionó
+          console.log('Unable to resolve to valid Amazon URL. HTML preview:', html.substring(0, 500));
+          
+          // Buscar cualquier elemento que indique captcha o verificación
+          if (html.includes('robot') || html.includes('captcha') || html.includes('verificación')) {
+            return res.status(503).json({
+              error: 'Error al resolver el enlace acortado',
+              message: 'Amazon está solicitando verificación CAPTCHA. Por favor intenta con un enlace normal de Amazon.'
+            });
+          } else {
+            return res.status(400).json({
+              error: 'Error al resolver el enlace acortado',
+              message: 'No se pudo obtener el enlace completo de Amazon. Por favor intenta con el enlace normal del producto.'
+            });
+          }
         }
       } catch (error) {
         console.error('Error resolving shortened URL:', error);
         return res.status(500).json({
           error: 'Error al resolver el enlace acortado',
-          details: error.message,
-          timestamp: new Date().toISOString()
+          message: 'Hubo un problema técnico al procesar el enlace corto. Por favor intenta con un enlace completo de Amazon.',
+          details: error.message
         });
       }
     } else if (url.includes('amazon.com.mx') || url.includes('amazon.com')) {

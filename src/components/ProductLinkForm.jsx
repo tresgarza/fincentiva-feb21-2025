@@ -81,6 +81,10 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
       
       if (parsedUrl.hostname.endsWith('a.co')) {
         console.log("Enlace acortado de Amazon detectado. El sistema intentará resolverlo automáticamente.");
+        showLoader({
+          message: "Enlace acortado de Amazon detectado. Obteniendo información del producto, esto podría tomar un momento adicional...",
+          type: "info"
+        });
       }
       
       return true;
@@ -117,7 +121,13 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
 
       await onSubmit(productLink, parseFloat(income), monthlyIncome);
     } catch (err) {
-      setError(err.message);
+      console.error('Error al procesar el enlace:', err);
+      
+      if (err.message && err.message.includes('resolver el enlace acortado')) {
+        setError("No se pudo procesar el enlace acortado de Amazon. Por favor intenta copiar el enlace completo directamente desde el navegador.");
+      } else {
+        setError(err.message || "Ocurrió un error al procesar tu solicitud");
+      }
     } finally {
       setIsSubmitting(false);
     }
