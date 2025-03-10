@@ -124,125 +124,31 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
   }, [product, company, onLoaded]);
 
   useEffect(() => {
-    // Cargar el advisor asociado a la empresa
+    // Cargar el advisor asociado a la empresa (solo cuando sea necesario)
     const loadAdvisor = async () => {
       if (company && company.id) {
-        console.log('Cargando advisor para empresa:', company);
+        console.log('Evaluando si es necesario cargar datos del advisor para:', company.name);
         
-        // Caso especial para empresas específicas
-        if (company.name === 'CADTONER' || company.employee_code === 'CAD0227') {
-          console.log('Detectada empresa CADTONER, buscando advisor específico');
-          try {
-            // Buscar Alexis Medina directamente si es CADTONER
-            const { data, error } = await supabase
-              .from('advisors')
-              .select('*')
-              .eq('access_code', '0021')
-              .single();
-              
-            if (!error && data) {
-              console.log('Advisor encontrado para CADTONER:', data);
-              setAdvisorData(data);
-              return;
-            }
-          } catch (e) {
-            console.error('Error al buscar advisor específico para CADTONER:', e);
-          }
+        // Si la empresa ya tiene el teléfono del asesor, no es necesario hacer más consultas
+        if (company.advisor_phone) {
+          console.log('La empresa ya tiene el teléfono del asesor:', company.advisor_phone);
+          return;
         }
         
-        // Caso especial para Taquería "Tía Carmen"
-        if (company.name.includes('Carmen') || company.employee_code === 'CAR5799') {
-          console.log('Detectada empresa Taquería "Tía Carmen", buscando advisor específico');
-          try {
-            // Buscar Angelica Elizondo directamente si es Tía Carmen
-            const { data, error } = await supabase
-              .from('advisors')
-              .select('*')
-              .eq('access_code', '0095')
-              .single();
-              
-            if (!error && data) {
-              console.log('Advisor encontrado para Taquería "Tía Carmen":', data);
-              setAdvisorData(data);
-              return;
-            }
-          } catch (e) {
-            console.error('Error al buscar advisor específico para Taquería "Tía Carmen":', e);
-          }
-        }
+        // Solo cargar el asesor si no está disponible el teléfono directamente
+        console.log('Obteniendo datos del advisor para complementar información');
         
         try {
           const result = await getCompanyAdvisor(company.id);
-          console.log('Resultado de getCompanyAdvisor:', result);
           
           if (result.success && result.data) {
             setAdvisorData(result.data);
-            console.log('Advisor asociado a la empresa:', result.data);
+            console.log('Advisor obtenido como respaldo:', result.data);
           } else {
-            console.warn('No se pudo obtener el advisor asociado a la empresa:', result.error);
-            
-            // Intento alternativo por nombre de empresa o código
-            if (company.name || company.employee_code) {
-              try {
-                console.log('Intentando búsqueda alternativa para:', company.name, company.employee_code);
-                let advisorAccessCode = '';
-                
-                // Mapeo de empresas a códigos de acceso de asesores (para casos especiales)
-                // Este mapeo es útil cuando fallan todas las demás opciones
-                const companyToAdvisorMap = {
-                  'CADTONER': '0021',
-                  'CAD0227': '0021',
-                  'Carmen': '0095',
-                  'CAR5799': '0095',
-                  'GSL9775': '4522', // Diego Garza
-                  'CAR9424': '9076'  // Edgar Benavides
-                };
-                
-                // Buscar por nombre de empresa
-                for (const key in companyToAdvisorMap) {
-                  if (company.name && company.name.includes(key) || company.employee_code === key) {
-                    advisorAccessCode = companyToAdvisorMap[key];
-                    break;
-                  }
-                }
-                
-                if (advisorAccessCode) {
-                  console.log('Buscando advisor por código de acceso específico:', advisorAccessCode);
-                  const { data, error } = await supabase
-                    .from('advisors')
-                    .select('*')
-                    .eq('access_code', advisorAccessCode)
-                    .single();
-                    
-                  if (!error && data) {
-                    console.log('Advisor encontrado por mapeo específico:', data);
-                    setAdvisorData(data);
-                    return;
-                  }
-                }
-                
-                // Si aún no encontramos, buscamos por el campo Advisor
-                if (company.Advisor) {
-                  console.log('Buscando por campo Advisor:', company.Advisor);
-                  const { data, error } = await supabase
-                    .from('advisors')
-                    .select('*')
-                    .ilike('name', `%${company.Advisor.replace(/['"áéíóúÁÉÍÓÚ]/g, '%')}%`)
-                    .limit(1);
-                    
-                  if (!error && data && data.length > 0) {
-                    console.log('Advisor encontrado por campo Advisor:', data[0]);
-                    setAdvisorData(data[0]);
-                    return;
-                  }
-                }
-              } catch (e) {
-                console.error('Error en búsqueda alternativa de advisor:', e);
-              }
-            }
+            console.warn('No se pudo obtener el advisor como respaldo');
           }
         } catch (error) {
-          console.error('Error al cargar el advisor:', error);
+          console.error('Error al cargar el advisor como respaldo:', error);
         }
       }
     };
@@ -493,23 +399,35 @@ Me gustaría recibir más información sobre el proceso de solicitud.
       // Codificar el mensaje para URL
       const encodedMessage = encodeURIComponent(message);
       
-      // Obtener el número de teléfono del advisor o usar el número por defecto
+      // Obtener el número de teléfono del asesor directamente de la empresa
       let phoneNumber = '5218116364522'; // Número por defecto - Diego Garza
       
-      if (advisorData && advisorData.phone) {
+      // Usar directamente el teléfono de la empresa si está disponible
+      if (company.advisor_phone) {
         // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
-        const cleanPhone = advisorData.phone.replace(/\D/g, '');
+        const cleanPhone = company.advisor_phone.replace(/\D/g, '');
+        
         // Asegurarse de que tiene el formato correcto para WhatsApp
         phoneNumber = cleanPhone.startsWith('52') ? cleanPhone : `52${cleanPhone}`;
+        
         // Asegurarse de que si ya tiene 10 dígitos, se le agregue el prefijo 52
         if (cleanPhone.length === 10) {
           phoneNumber = `52${cleanPhone}`;
         }
-        console.log('Usando número de teléfono del advisor:', phoneNumber);
-      } else {
-        console.warn('No se encontró el advisor asociado a la empresa, usando número por defecto');
         
-        // Mapeo de códigos de empresa a números de teléfono de asesores
+        console.log('Usando número de teléfono del advisor asignado a la empresa:', phoneNumber);
+      } else if (advisorData && advisorData.phone) {
+        // Como respaldo, usar el teléfono del advisor obtenido de la consulta
+        const cleanPhone = advisorData.phone.replace(/\D/g, '');
+        phoneNumber = cleanPhone.startsWith('52') ? cleanPhone : `52${cleanPhone}`;
+        if (cleanPhone.length === 10) {
+          phoneNumber = `52${cleanPhone}`;
+        }
+        console.log('Usando número de teléfono del advisor obtenido por consulta:', phoneNumber);
+      } else {
+        console.warn('No se encontró teléfono del asesor, usando número por defecto o específico');
+        
+        // Mapeo de códigos de empresa a números de teléfono como último respaldo
         const companyCodeToPhoneMap = {
           'CAD0227': '5218113800021', // Alexis Medina - CADTONER
           'CAR5799': '5218211110095', // Angelica Elizondo - Taquería "Tía Carmen"
@@ -520,35 +438,14 @@ Me gustaría recibir más información sobre el proceso de solicitud.
           'GSL9775': '5218116364522'  // Diego Garza - Industrias GSL
         };
         
-        // Mapeo de nombres de empresa a números de teléfono de asesores
-        const companyNameToPhoneMap = {
-          'CADTONER': '5218113800021',
-          'Carmen': '5218211110095',
-          'Transportes': '5218211110095',
-          'Presidencia': '5218211110095',
-          'Raquel': '5218211110095',
-          'Cartotec': '5218117919076',
-          'Industrias GSL': '5218116364522'
-        };
-        
-        // Buscar primero por código de empresa
+        // Buscar por código de empresa como último respaldo
         if (company.employee_code && companyCodeToPhoneMap[company.employee_code]) {
           phoneNumber = companyCodeToPhoneMap[company.employee_code];
           console.log('Usando número específico para código de empresa:', company.employee_code, phoneNumber);
-        } 
-        // Si no se encuentra por código, buscar por nombre de empresa
-        else if (company.name) {
-          for (const key in companyNameToPhoneMap) {
-            if (company.name.includes(key)) {
-              phoneNumber = companyNameToPhoneMap[key];
-              console.log('Usando número específico para nombre de empresa:', key, phoneNumber);
-              break;
-            }
-          }
         }
       }
       
-      // Redirigir a WhatsApp con el número del advisor o el predeterminado
+      // Redirigir a WhatsApp con el número del advisor
       console.log('Abriendo WhatsApp con el número:', phoneNumber);
       window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
       
