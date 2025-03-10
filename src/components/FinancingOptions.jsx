@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Button from "./Button";
 import { API_URL } from '../config/api';
-import { saveProductSimulation, saveCashRequest, saveSelectedPlan } from '../services/supabaseServices';
+import { saveProductSimulation, saveCashRequest, saveSelectedPlan, getCompanyAdvisor } from '../services/supabaseServices';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) => {
@@ -14,6 +14,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [showLoadingPopup, setShowLoadingPopup] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [advisorData, setAdvisorData] = useState(null);
 
   // Mostrar notificación
   const showNotification = (message, type = 'success') => {
@@ -120,6 +121,27 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
 
     calculatePayments();
   }, [product, company, onLoaded]);
+
+  useEffect(() => {
+    // Cargar el advisor asociado a la empresa
+    const loadAdvisor = async () => {
+      if (company && company.id) {
+        try {
+          const result = await getCompanyAdvisor(company.id);
+          if (result.success && result.data) {
+            setAdvisorData(result.data);
+            console.log('Advisor asociado a la empresa:', result.data);
+          } else {
+            console.warn('No se pudo obtener el advisor asociado a la empresa:', result.error);
+          }
+        } catch (error) {
+          console.error('Error al cargar el advisor:', error);
+        }
+      }
+    };
+
+    loadAdvisor();
+  }, [company]);
 
   // Función para guardar la simulación en Supabase según el tipo
   const saveSimulation = async (plans) => {
@@ -364,8 +386,25 @@ Me gustaría recibir más información sobre el proceso de solicitud.
       // Codificar el mensaje para URL
       const encodedMessage = encodeURIComponent(message);
       
-      // Redirigir a WhatsApp
-      window.open(`https://wa.me/5218116364522?text=${encodedMessage}`, '_blank');
+      // Obtener el número de teléfono del advisor o usar el número por defecto
+      let phoneNumber = '5218116364522'; // Número por defecto
+      
+      if (advisorData && advisorData.phone) {
+        // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
+        const cleanPhone = advisorData.phone.replace(/\D/g, '');
+        // Asegurarse de que tiene el formato correcto para WhatsApp
+        phoneNumber = cleanPhone.startsWith('52') ? cleanPhone : `52${cleanPhone}`;
+        // Asegurarse de que si ya tiene 10 dígitos, se le agregue el prefijo 52
+        if (cleanPhone.length === 10) {
+          phoneNumber = `52${cleanPhone}`;
+        }
+        console.log('Usando número de teléfono del advisor:', phoneNumber);
+      } else {
+        console.warn('No se encontró el advisor asociado a la empresa, usando número por defecto');
+      }
+      
+      // Redirigir a WhatsApp con el número del advisor o el predeterminado
+      window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
       
       showNotification("¡Plan seleccionado correctamente!");
     } catch (error) {

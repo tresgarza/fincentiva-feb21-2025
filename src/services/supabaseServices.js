@@ -108,4 +108,41 @@ const updateCashRequestWithPlan = async (requestId, planId) => {
     console.error('Error al actualizar la solicitud de efectivo:', error);
     return { success: false, error: error.message };
   }
+};
+
+/**
+ * Obtiene el advisor asociado a una empresa
+ * @param {string} companyId - ID de la empresa
+ * @returns {Promise<Object>} - Objeto con los datos del advisor
+ */
+export const getCompanyAdvisor = async (companyId) => {
+  try {
+    // Primero obtenemos la empresa con su advisor_id
+    const { data: companyData, error: companyError } = await supabase
+      .from('companies')
+      .select('advisor_id')
+      .eq('id', companyId)
+      .single();
+
+    if (companyError) throw companyError;
+    
+    if (!companyData.advisor_id) {
+      console.warn('La empresa no tiene un advisor asignado');
+      return { success: false, error: 'La empresa no tiene un advisor asignado' };
+    }
+
+    // Luego obtenemos los datos del advisor
+    const { data: advisorData, error: advisorError } = await supabase
+      .from('advisors')
+      .select('*')
+      .eq('id', companyData.advisor_id)
+      .single();
+
+    if (advisorError) throw advisorError;
+
+    return { success: true, data: advisorData };
+  } catch (error) {
+    console.error('Error al obtener el advisor de la empresa:', error);
+    return { success: false, error: error.message };
+  }
 }; 
