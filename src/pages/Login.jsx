@@ -1,5 +1,6 @@
 import CompanyAuth from '../components/CompanyAuth';
 import Footer from '../components/Footer';
+import WarningBanner from '../components/WarningBanner';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logoCartotec from '../assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from '../assets/logos/Logo_empresa_cadtoner.png';
@@ -46,6 +47,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-n-8 flex flex-col">
+      <WarningBanner />
       <div className="flex-grow">
         <CompanyAuth onAuthenticated={handleAuthenticated} />
       </div>
