@@ -9,9 +9,10 @@ import CreditAmountForm from "./components/CreditAmountForm";
 import FinancingOptions from "./components/FinancingOptions";
 import CompanyAuth from "./components/CompanyAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import WarningBanner from "./components/WarningBanner";
 import { getProductInfo } from "./services/api";
 import Typewriter from 'typewriter-effect';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import logoCartotec from './assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from './assets/logos/Logo_empresa_cadtoner.png';
@@ -177,28 +178,38 @@ const App = () => {
   );
 };
 
-// Crear el enrutador con las rutas definidas
+// Componente Layout que envolverá todas las rutas
+const Layout = ({ children }) => {
+  return (
+    <>
+      <WarningBanner />
+      {children}
+    </>
+  );
+};
+
+// Envolver cada ruta con el Layout
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/login" replace />
+    element: <Layout><Navigate to="/login" replace /></Layout>
   },
   {
     path: "/login",
-    element: <Login />
+    element: <Layout><Login /></Layout>
   },
   {
     path: "/inicio",
-    element: <ProtectedRoute><Home /></ProtectedRoute>
+    element: <Layout><ProtectedRoute><Home /></ProtectedRoute></Layout>
   },
   {
     path: "/planes",
-    element: <ProtectedRoute><Plans /></ProtectedRoute>
+    element: <Layout><ProtectedRoute><Plans /></ProtectedRoute></Layout>
   },
   // Capturar cualquier otra ruta y redirigir a login si no está autenticado
   {
     path: "*",
-    element: <ProtectedRoute><Navigate to="/inicio" replace /></ProtectedRoute>
+    element: <Layout><ProtectedRoute><Navigate to="/inicio" replace /></ProtectedRoute></Layout>
   }
 ], {
   future: {

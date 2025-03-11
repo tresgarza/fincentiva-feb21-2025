@@ -1,4 +1,5 @@
 import CompanyAuth from '../components/CompanyAuth';
+import Footer from '../components/Footer';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logoCartotec from '../assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from '../assets/logos/Logo_empresa_cadtoner.png';
@@ -44,8 +45,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-n-8">
-      <CompanyAuth onAuthenticated={handleAuthenticated} />
+    <div className="min-h-screen bg-n-8 flex flex-col">
+      <div className="flex-grow">
+        <CompanyAuth onAuthenticated={handleAuthenticated} />
+      </div>
+      <Footer />
     </div>
   );
 };

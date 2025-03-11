@@ -3,6 +3,7 @@ import Section from "./Section";
 import logoBuro from "../assets/logos/logo_buro.png";
 import logoCondusef from "../assets/logos/logo_condusef.png";
 import logoCNBV from "../assets/logos/Logo_CNBV.png";
+import { FaFileAlt } from 'react-icons/fa';
 
 const Footer = () => {
   return (
@@ -83,9 +84,20 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="mt-8 text-center text-sm text-n-4">
-          <p>© {new Date().getFullYear()} Financiera Incentiva. Todos los derechos reservados.</p>
+        {/* Copyright y enlaces legales */}
+        <div className="mt-8 text-center">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-4">
+            <a 
+              href="/docs/aviso-privacidad.pdf" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-n-7 hover:bg-n-6 text-n-1 rounded-lg transition-colors"
+            >
+              <FaFileAlt className="text-[#33FF57]" />
+              <span>Aviso de Privacidad</span>
+            </a>
+          </div>
+          <p className="text-sm text-n-4">© {new Date().getFullYear()} Financiera Incentiva. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>
