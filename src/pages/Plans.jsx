@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import WarningBanner from '../components/WarningBanner';
 import Footer from '../components/Footer';
 import FinancingOptions from '../components/FinancingOptions';
 import ButtonGradient from '../assets/svg/ButtonGradient';
@@ -34,8 +33,7 @@ const Plans = () => {
   return (
     <div className="relative min-h-screen bg-n-8">
       <Header />
-      <WarningBanner />
-      <div className="container mx-auto px-4 py-16 mt-[80px]">
+      <div className="container mx-auto px-4 pt-[100px]">
         <FinancingOptions
           product={productData}
           company={{...companyData, monthly_income: monthlyIncome}}

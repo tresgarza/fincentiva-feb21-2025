@@ -3,30 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HiExclamation } from 'react-icons/hi';
 
 const WarningBanner = () => {
-  const [hasScrolled, setHasScrolled] = useState(false);
-
-  // Monitorear el scroll para ajustar la posición
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      setHasScrolled(scrollPosition > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed top-[50px] w-full z-40"
+        className="fixed top-[50px] left-0 w-full z-40 bg-n-8/90 backdrop-blur-sm"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, type: 'spring', stiffness: 100 }}
       >
         <div className="container mx-auto px-4">
           <motion.div
-            className="relative overflow-hidden bg-gradient-to-r from-amber-600/80 to-amber-500/80 backdrop-blur-sm text-black border border-amber-400 shadow-lg rounded-b-lg py-2"
+            className="relative overflow-hidden bg-gradient-to-r from-amber-600/80 to-amber-500/80 backdrop-blur-sm text-black border border-amber-400 shadow-lg rounded-lg py-2"
           >
             {/* Pulso de advertencia */}
             <motion.div

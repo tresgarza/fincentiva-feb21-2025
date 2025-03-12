@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import WarningBanner from "../components/WarningBanner";
 import Hero from "../components/Hero";
 import Benefits from "../components/Benefits";
 import Footer from "../components/Footer";
@@ -106,8 +105,7 @@ const Home = () => {
       {/* Content */}
       <div className="relative z-10">
         <Header />
-        <WarningBanner />
-        <div className="mt-[80px]">
+        <div className="pt-[100px]"> {/* Espacio para compensar el header y el banner fijos */}
           <Hero 
             activeForm={activeForm}
             setActiveForm={setActiveForm}

@@ -151,23 +151,25 @@ const App = () => {
         {companyData && (
           <>
             <Header />
-            <Hero 
-              activeForm={activeForm}
-              setActiveForm={setActiveForm}
-              showFinancingOptions={showFinancingOptions}
-              handleProductSubmit={handleProductSubmit}
-              handleAmountSubmit={handleAmountSubmit}
-              isLoading={isLoading}
-              companyData={companyData}
-              showLoader={showLoader}
-              productData={productData}
-              monthlyIncome={monthlyIncome}
-              handlePlanSelection={handlePlanSelection}
-              handleBack={handleBack}
-              setShowLoader={setShowLoader}
-              setIsLoading={setIsLoading}
-            />
-            {!showFinancingOptions && <Benefits />}
+            <div className="pt-[100px]"> {/* Espacio para el header y el banner */}
+              <Hero 
+                activeForm={activeForm}
+                setActiveForm={setActiveForm}
+                showFinancingOptions={showFinancingOptions}
+                handleProductSubmit={handleProductSubmit}
+                handleAmountSubmit={handleAmountSubmit}
+                isLoading={isLoading}
+                companyData={companyData}
+                showLoader={showLoader}
+                productData={productData}
+                monthlyIncome={monthlyIncome}
+                handlePlanSelection={handlePlanSelection}
+                handleBack={handleBack}
+                setShowLoader={setShowLoader}
+                setIsLoading={setIsLoading}
+              />
+              {!showFinancingOptions && <Benefits />}
+            </div>
             <Footer />
           </>
         )}
@@ -182,6 +184,7 @@ const App = () => {
 const Layout = ({ children }) => {
   return (
     <>
+      <WarningBanner />
       {children}
     </>
   );
