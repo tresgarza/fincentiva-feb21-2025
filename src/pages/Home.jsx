@@ -122,7 +122,7 @@ const Home = () => {
       {/* Content */}
       <div className="relative z-10">
         <Header />
-        <div className="pt-[100px]"> {/* Espacio para compensar el header y el banner fijos */}
+        <div className="pt-[60px]"> {/* Espacio reducido para compensar el header y el banner fijos */}
           <Hero 
             activeForm={activeForm}
             setActiveForm={setActiveForm}

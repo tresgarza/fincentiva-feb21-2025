@@ -100,8 +100,13 @@ app.post('/api/product/info', async (req, res) => {
           const fetchResponse = await fetch(url, {
             redirect: 'follow',
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
-            }
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.5',
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            },
+            timeout: 30000
           });
           
           // Obtener la URL final después de las redirecciones
@@ -115,6 +120,25 @@ app.post('/api/product/info', async (req, res) => {
             console.log('Successfully processed product with fetch method');
             res.json(productData);
             return;
+          } else {
+            // Si fetch no resolvió a una URL de Amazon, intentar extraer de la respuesta HTML
+            console.log('Fetch resolved URL is not from Amazon. Attempting to extract from HTML...');
+            const htmlContent = await fetchResponse.text();
+            
+            // Buscar posible URL de Amazon en el HTML
+            const amazonUrlMatch = htmlContent.match(/https:\/\/(?:www\.)?amazon\.com(?:\.mx)?\/[^\s"']+/i);
+            if (amazonUrlMatch) {
+              const extractedUrl = amazonUrlMatch[0].replace(/\\/g, '');
+              console.log('Found Amazon URL in HTML:', extractedUrl);
+              
+              if (extractedUrl.includes('amazon.com') || extractedUrl.includes('amazon.com.mx')) {
+                console.log('Starting scraper with extracted URL...');
+                productData = await scrapeAmazonProduct(extractedUrl);
+                console.log('Successfully processed product with extracted URL');
+                res.json(productData);
+                return;
+              }
+            }
           }
         } catch (fetchError) {
           console.error('Error resolving with fetch:', fetchError);
@@ -129,7 +153,11 @@ app.post('/api/product/info', async (req, res) => {
             return status >= 200 && status < 400; // Acepta redirecciones
           },
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
           }
         });
         
@@ -158,10 +186,21 @@ app.post('/api/product/info', async (req, res) => {
         
         // 3. Buscar en el texto del HTML alguna URL de Amazon
         if (!fullUrl || !fullUrl.includes('amazon')) {
-          const amazonUrlMatch = html.match(/https:\/\/(?:www\.)?amazon\.com(?:\.mx)?\/[^\s"']+/i);
-          if (amazonUrlMatch) {
-            fullUrl = amazonUrlMatch[0];
-            console.log('Found Amazon URL in HTML content:', fullUrl);
+          // Patrón más amplio para capturar URLs de Amazon
+          const amazonUrlMatches = html.match(/https:\/\/(?:www\.)?amazon\.com(?:\.mx)?\/[^\s"'<>]+/ig);
+          if (amazonUrlMatches && amazonUrlMatches.length > 0) {
+            // Priorizar URLs que parecen de producto (contienen dp/ o gp/product/)
+            const productUrlMatch = amazonUrlMatches.find(url => 
+              url.includes('/dp/') || url.includes('/gp/product/'));
+              
+            if (productUrlMatch) {
+              fullUrl = productUrlMatch.replace(/\\/g, '');
+              console.log('Found Amazon product URL in HTML content:', fullUrl);
+            } else {
+              // Si no hay URL de producto, usar la primera URL de Amazon
+              fullUrl = amazonUrlMatches[0].replace(/\\/g, '');
+              console.log('Found Amazon URL in HTML content:', fullUrl);
+            }
           }
         }
         
@@ -173,10 +212,32 @@ app.post('/api/product/info', async (req, res) => {
           }
         }
         
+        // 5. Último recurso: extraer ASIN y construir URL manualmente
+        if (!fullUrl || !fullUrl.includes('amazon')) {
+          const asinMatch = html.match(/(?:ASIN|asin|productId|product-id|productID)(?:\s*[=:]\s*["']?)([A-Z0-9]{10})["']?/i);
+          if (asinMatch && asinMatch[1]) {
+            const asin = asinMatch[1];
+            console.log('Extracted ASIN from HTML:', asin);
+            fullUrl = `https://www.amazon.com.mx/dp/${asin}`;
+            console.log('Constructed Amazon URL from ASIN:', fullUrl);
+          }
+        }
+        
         // Verificar si la URL resuelta es de Amazon
         if (fullUrl && (fullUrl.includes('amazon.com.mx') || fullUrl.includes('amazon.com'))) {
           console.log('Confirmed Amazon URL after resolution, starting scraper...');
-          productData = await scrapeAmazonProduct(fullUrl);
+          try {
+            productData = await scrapeAmazonProduct(fullUrl);
+            console.log('Successfully processed product with resolved URL');
+            res.json(productData);
+            return;
+          } catch (scrapeError) {
+            console.error('Error scraping Amazon product after URL resolution:', scrapeError);
+            return res.status(500).json({
+              error: 'Error al procesar el producto de Amazon',
+              message: 'Se resolvió el enlace acortado, pero hubo un problema al obtener información del producto.'
+            });
+          }
         } else {
           // Si llegamos aquí, ninguno de los métodos funcionó
           console.log('Unable to resolve to valid Amazon URL. HTML preview:', html.substring(0, 500));
@@ -198,7 +259,7 @@ app.post('/api/product/info', async (req, res) => {
         console.error('Error resolving shortened URL:', error);
         return res.status(500).json({
           error: 'Error al resolver el enlace acortado',
-          message: 'Hubo un problema técnico al procesar el enlace corto. Por favor intenta con un enlace completo de Amazon.',
+          message: 'Ocurrió un problema al procesar el enlace acortado. Por favor intenta con un enlace completo de Amazon.',
           details: error.message
         });
       }
