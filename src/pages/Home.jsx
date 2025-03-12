@@ -5,6 +5,8 @@ import Hero from "../components/Hero";
 import Benefits from "../components/Benefits";
 import Footer from "../components/Footer";
 import ButtonGradient from "../assets/svg/ButtonGradient";
+import ProductLinkForm from "../components/ProductLinkForm";
+import FinancingOptions from "../components/FinancingOptions";
 import { getProductInfo } from "../services/api";
 
 const Home = () => {
@@ -81,6 +83,21 @@ const Home = () => {
       setShowLoader(false);
       setIsLoading(false);
     }
+  };
+
+  const handlePlanSelection = (planId) => {
+    // Implementar lógica de selección de plan
+    console.log("Selected plan:", planId);
+  };
+  
+  const handleBack = () => {
+    setShowFinancingOptions(false);
+    setProductData(null);
+  };
+  
+  const handleFinancingOptionsLoaded = () => {
+    setShowLoader(false);
+    setIsLoading(false);
   };
 
   if (!companyData) {
