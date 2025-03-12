@@ -33,19 +33,23 @@ const Plans = () => {
 
   return (
     <div className="relative min-h-screen bg-n-8">
-      <Header />
-      <WarningBanner />
-      <div className="container mx-auto px-4 py-16">
-        <FinancingOptions
-          product={productData}
-          company={{...companyData, monthly_income: monthlyIncome}}
-          onSelectPlan={handlePlanSelection}
-          onBack={handleBack}
-          onLoaded={() => {}}
-        />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Header />
+        <WarningBanner />
+        <div className="flex-grow">
+          <div className="container mx-auto px-4 py-10">
+            <FinancingOptions
+              product={productData}
+              company={{...companyData, monthly_income: monthlyIncome}}
+              onSelectPlan={handlePlanSelection}
+              onBack={handleBack}
+              onLoaded={() => {}}
+            />
+          </div>
+        </div>
+        <Footer />
+        <ButtonGradient />
       </div>
-      <Footer />
-      <ButtonGradient />
     </div>
   );
 };

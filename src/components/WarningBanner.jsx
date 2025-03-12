@@ -17,16 +17,16 @@ const WarningBanner = () => {
   }, []);
 
   return (
-    <AnimatePresence>
+    <div className="w-full mt-16"> {/* mt-16 para dar espacio al header fijo */}
       <motion.div
-        className="sticky top-[60px] w-full z-40"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, type: 'spring', stiffness: 100 }}
+        className="w-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
       >
         <div className="container mx-auto px-4">
           <motion.div
-            className="relative overflow-hidden bg-gradient-to-r from-amber-600/80 to-amber-500/80 backdrop-blur-sm text-black border border-amber-400 shadow-lg rounded-lg py-2 mb-2"
+            className="relative overflow-hidden bg-gradient-to-r from-amber-600/90 to-amber-500/90 backdrop-blur-sm text-black border border-amber-400 shadow-lg rounded-lg py-3 mb-4"
           >
             {/* Pulso de advertencia */}
             <motion.div
@@ -70,7 +70,7 @@ const WarningBanner = () => {
           </motion.div>
         </div>
       </motion.div>
-    </AnimatePresence>
+    </div>
   );
 };
 

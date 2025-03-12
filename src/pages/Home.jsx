@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import WarningBanner from "../components/WarningBanner";
 import Hero from "../components/Hero";
 import Benefits from "../components/Benefits";
 import Footer from "../components/Footer";
@@ -103,22 +104,42 @@ const Home = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col min-h-screen">
         <Header />
-        <Hero 
-          activeForm={activeForm}
-          setActiveForm={setActiveForm}
-          showFinancingOptions={showFinancingOptions}
-          handleProductSubmit={handleProductSubmit}
-          handleAmountSubmit={handleAmountSubmit}
-          isLoading={isLoading}
-          companyData={companyData}
-          showLoader={showLoader}
-          productData={productData}
-          monthlyIncome={monthlyIncome}
-        />
-        <div className="mt-8">
-          <Benefits />
+        <WarningBanner />
+        <div className="flex-grow">
+          <Hero 
+            activeForm={activeForm}
+            setActiveForm={setActiveForm}
+            showFinancingOptions={showFinancingOptions}
+            handleProductSubmit={handleProductSubmit}
+            handleAmountSubmit={handleAmountSubmit}
+            isLoading={isLoading}
+            companyData={companyData}
+            showLoader={showLoader}
+            productData={productData}
+            monthlyIncome={monthlyIncome}
+          />
+          {!productData ? (
+            <ProductLinkForm
+              onSubmit={handleProductSubmit}
+              isLoading={isLoading}
+              company={companyData}
+              showLoader={showLoader ? {
+                message: "Obteniendo información del producto...",
+                type: "info"
+              } : null}
+            />
+          ) : (
+            <FinancingOptions
+              product={productData}
+              company={{...companyData, monthly_income: monthlyIncome}}
+              onSelectPlan={handlePlanSelection}
+              onBack={handleBack}
+              onLoaded={handleFinancingOptionsLoaded}
+            />
+          )}
+          {!productData && <Benefits />}
         </div>
         <Footer />
         <ButtonGradient />
