@@ -5,6 +5,8 @@ import WarningBanner from "../components/WarningBanner";
 import Hero from "../components/Hero";
 import Benefits from "../components/Benefits";
 import Footer from "../components/Footer";
+import ProductLinkForm from "../components/ProductLinkForm";
+import FinancingOptions from "../components/FinancingOptions";
 import ButtonGradient from "../assets/svg/ButtonGradient";
 import { getProductInfo } from "../services/api";
 
