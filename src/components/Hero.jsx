@@ -37,7 +37,8 @@ const Hero = ({
   handlePlanSelection,
   handleBack,
   setShowLoader,
-  setIsLoading
+  setIsLoading,
+  handleFinancingOptionsLoaded
 }) => {
   const parallaxRef = useRef(null);
 
@@ -250,10 +251,7 @@ const Hero = ({
                 company={{...companyData, monthly_income: monthlyIncome}}
                 onSelectPlan={handlePlanSelection}
                 onBack={handleBack}
-                onLoaded={() => {
-                  setShowLoader(false);
-                  setIsLoading(false);
-                }}
+                onLoaded={handleFinancingOptionsLoaded}
               />
             )}
           </div>

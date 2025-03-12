@@ -134,26 +134,10 @@ const Home = () => {
             showLoader={showLoader}
             productData={productData}
             monthlyIncome={monthlyIncome}
+            handlePlanSelection={handlePlanSelection}
+            handleBack={handleBack}
+            handleFinancingOptionsLoaded={handleFinancingOptionsLoaded}
           />
-          {!productData ? (
-            <ProductLinkForm
-              onSubmit={handleProductSubmit}
-              isLoading={isLoading}
-              company={companyData}
-              showLoader={showLoader ? {
-                message: "Obteniendo información del producto...",
-                type: "info"
-              } : null}
-            />
-          ) : (
-            <FinancingOptions
-              product={productData}
-              company={{...companyData, monthly_income: monthlyIncome}}
-              onSelectPlan={handlePlanSelection}
-              onBack={handleBack}
-              onLoaded={handleFinancingOptionsLoaded}
-            />
-          )}
           {!productData && <Benefits />}
         </div>
         <Footer />
