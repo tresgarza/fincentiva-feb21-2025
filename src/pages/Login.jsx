@@ -46,9 +46,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-n-8 flex flex-col">
+    <div className="min-h-screen bg-n-8 flex flex-col pt-[50px]">
       <WarningBanner />
-      <div className="flex-grow">
+      <div className="flex-grow mt-10">
         <CompanyAuth onAuthenticated={handleAuthenticated} />
       </div>
       <Footer />

@@ -5,8 +5,6 @@ import WarningBanner from "../components/WarningBanner";
 import Hero from "../components/Hero";
 import Benefits from "../components/Benefits";
 import Footer from "../components/Footer";
-import ProductLinkForm from "../components/ProductLinkForm";
-import FinancingOptions from "../components/FinancingOptions";
 import ButtonGradient from "../assets/svg/ButtonGradient";
 import { getProductInfo } from "../services/api";
 
@@ -106,10 +104,10 @@ const Home = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative z-10">
         <Header />
         <WarningBanner />
-        <div className="flex-grow">
+        <div className="mt-[80px]">
           <Hero 
             activeForm={activeForm}
             setActiveForm={setActiveForm}
