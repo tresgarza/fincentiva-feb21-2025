@@ -47,7 +47,10 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-n-8 flex flex-col">
-      <WarningBanner />
+      {/* El banner se muestra una sola vez, justo al inicio */}
+      <div className="sticky top-0 z-50 w-full">
+        <WarningBanner />
+      </div>
       <div className="flex-grow">
         <CompanyAuth onAuthenticated={handleAuthenticated} />
       </div>

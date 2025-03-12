@@ -19,14 +19,14 @@ const WarningBanner = () => {
   return (
     <AnimatePresence>
       <motion.div
-        className="relative w-full z-10"
+        className="sticky top-[60px] w-full z-40"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, type: 'spring', stiffness: 100 }}
       >
         <div className="container mx-auto px-4">
           <motion.div
-            className="relative overflow-hidden bg-gradient-to-r from-amber-600/80 to-amber-500/80 backdrop-blur-sm text-black border border-amber-400 shadow-lg rounded-lg py-2 mt-2"
+            className="relative overflow-hidden bg-gradient-to-r from-amber-600/80 to-amber-500/80 backdrop-blur-sm text-black border border-amber-400 shadow-lg rounded-lg py-2 mb-2"
           >
             {/* Pulso de advertencia */}
             <motion.div

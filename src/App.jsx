@@ -182,7 +182,6 @@ const App = () => {
 const Layout = ({ children }) => {
   return (
     <>
-      <WarningBanner />
       {children}
     </>
   );
