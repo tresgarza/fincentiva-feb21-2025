@@ -409,7 +409,7 @@ Me interesa solicitar un crédito con las siguientes características:
 
 *Datos del Producto:*
 📱 Producto: ${product.title}
-💰 Precio: ${formatCurrency(product.price)}`;
+💰 Precio: ${formatCurrency(product.title !== "Crédito Personal" ? financingAmount : product.price)}`;
 
       // Añadir enlace del producto si existe
       if (product.url && product.title !== "Crédito Personal") {
