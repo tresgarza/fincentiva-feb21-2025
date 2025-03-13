@@ -171,7 +171,7 @@ const Hero = ({
                 : 'bg-n-7 text-n-1 hover:bg-n-6'
             }`}
           >
-            Solicitar Efectivo
+            Crédito Personal
           </button>
         </div>
               
@@ -258,7 +258,7 @@ const Hero = ({
 
           {/* Columna Derecha - Oculta en móvil */}
           <div className="hidden lg:block bg-n-6/50 rounded-lg p-4">
-            <h4 className="text-xl font-semibold mb-4 text-n-1">Solicitar Efectivo</h4>
+            <h4 className="text-xl font-semibold mb-4 text-n-1">Crédito Personal</h4>
             <ol className="text-sm text-n-3 space-y-3">
               <li className="flex items-start gap-2">
                 <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
@@ -279,7 +279,7 @@ const Hero = ({
               <ul className="space-y-2 text-sm text-n-3">
                 <li className="flex items-center gap-2">
                   <span>💰</span>
-                  <span>Hasta $100,000 MXN</span>
+                  <span>Revisa tu capacidad de pago</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span>⚡</span>
@@ -287,7 +287,7 @@ const Hero = ({
                 </li>
                 <li className="flex items-center gap-2">
                   <span>🏦</span>
-                  <span>Depósito directo</span>
+                  <span>Depósito por transferencia</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span>📅</span>

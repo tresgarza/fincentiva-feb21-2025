@@ -24,7 +24,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     // Convertir la comisión a decimal (5.00 -> 0.05)
     const commissionRate = (company.commission_rate || 0) / 100;
     
-    if (product.title === "Crédito en Efectivo") {
+    if (product.title === "Crédito Personal") {
       // Para créditos personales: monto solicitado (la comisión se mostrará como deducción)
       return product.price;
     } else {
@@ -223,7 +223,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       }
       
       // Determinar si es una simulación de producto o una solicitud de efectivo
-      const isProductSimulation = product.title !== "Crédito en Efectivo";
+      const isProductSimulation = product.title !== "Crédito Personal";
       console.log('Tipo de simulación:', isProductSimulation ? 'Producto' : 'Efectivo');
       
       // Datos comunes para ambos tipos de simulación
@@ -335,7 +335,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       }, 1000);
 
       // Determine simulation type
-      const simulationType = product.title === "Crédito en Efectivo" ? 'cash' : 'product';
+      const simulationType = product.title === "Crédito Personal" ? 'cash' : 'product';
       console.log('Tipo de simulación en handlePlanSelection:', simulationType);
       
       // Preparar datos adicionales del producto
@@ -405,14 +405,14 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     // Construir el mensaje con la información del plan
       let message = `¡Hola! 👋
 
-Me interesa solicitar un financiamiento con las siguientes características:
+Me interesa solicitar un crédito con las siguientes características:
 
 *Datos del Producto:*
 📱 Producto: ${product.title}
 💰 Precio: ${formatCurrency(product.price)}`;
 
       // Añadir enlace del producto si existe
-      if (product.url && product.title !== "Crédito en Efectivo") {
+      if (product.url && product.title !== "Crédito Personal") {
         message += `
 🔗 Enlace: ${product.url}`;
       }
@@ -424,13 +424,15 @@ Me interesa solicitar un financiamiento con las siguientes características:
 ⏱️ Plazo: ${selectedPlan.periods} ${selectedPlan.periodLabel}
 💳 Pago por ${selectedPlan.periodLabel}: ${formatCurrency(selectedPlan.paymentPerPeriod)}
 💵 Total a pagar: ${formatCurrency(selectedPlan.totalPayment)}
-📊 Tasa de interés: ${selectedPlan.interestRate}% anual
 
 *Datos de Contacto:*
 👤 Nombre: ${userData.firstName} ${userData.lastName}
 📞 Teléfono: ${userData.phone || 'No proporcionado'}
 
 Me gustaría recibir más información sobre el proceso de solicitud.
+
+*Nota:* Esta simulación es solo una referencia y el crédito final puede variar de acuerdo a la verificación realizada por Financiera Incentiva y el área administrativa de mi empresa.
+
 ¡Gracias!`;
 
       // Esperar a que la animación termine (mínimo 3 segundos)
@@ -606,7 +608,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
             {/* Product Info Column */}
             <div className="bg-n-7 rounded-lg p-3">
               <div className="flex flex-col gap-2">
-                {product.title === "Crédito en Efectivo" ? (
+                {product.title === "Crédito Personal" ? (
                   <div className="flex flex-col items-center">
                     <div className="w-[120px] h-[120px] relative mb-4">
                       {/* Círculo exterior animado */}
