@@ -703,58 +703,62 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                           : ''}
                       `}
                     >
-                      {/* Badges en la parte superior: Recomendado y Seleccionado */}
-                      <div className="absolute top-0 right-0 flex gap-1">
-                        {isRecommended && !exceeds && (
-                          <span className="inline-block bg-[#33FF57] text-black text-[9px] font-medium px-2 py-0.5 rounded-bl-md">
-                            Recomendado
-                          </span>
-                        )}
-                        
-                        {isSelected && !exceeds && (
-                          <span className="inline-block bg-n-6 text-[#33FF57] text-[9px] font-medium px-2 py-0.5 rounded-bl-md">
-                            <svg className="w-3 h-3 inline-block mr-0.5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            Seleccionado
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-row items-center pt-3">
-                        {/* Left side - Period Information */}
-                        <div className="w-1/3 text-center">
-                          <h3 className="text-sm font-bold text-n-1">
-                            {option.periods} <span className="text-xs block sm:inline">{option.periodLabel}</span>
+                      {/* Layout de la tarjeta en dos partes principales */}
+                      <div className="grid grid-cols-5 gap-2">
+                        {/* Columna izquierda (1/5) - Periodos */}
+                        <div className="col-span-1 flex flex-col justify-center items-center">
+                          <h3 className="text-lg font-bold text-n-1 text-center">
+                            {option.periods}
                           </h3>
+                          <span className="text-xs text-n-3 text-center">
+                            {option.periodLabel}
+                          </span>
                         </div>
                         
-                        {/* Right side - Payment info (usando 2/3 del espacio) */}
-                        <div className="w-2/3 border-l border-n-6 pl-3">
-                          <div className="flex items-baseline">
-                            <span className={`text-xl font-bold ${exceeds ? 'text-red-500' : 'text-[#33FF57]'}`}>
-                              {formatCurrency(option.paymentPerPeriod)}
-                            </span>
-                            <span className="text-xs text-n-3 ml-1">
-                              /{getPeriodShortLabel(option.periodLabel)}
-                            </span>
+                        {/* Columna derecha (4/5) - Información de pagos */}
+                        <div className="col-span-4 flex flex-col">
+                          {/* Fila 1: "Recomendado" - Cuadro Morado */}
+                          {isRecommended && !exceeds && (
+                            <div className="text-center mb-1">
+                              <span className="inline-block bg-[#33FF57] text-black text-xs font-medium px-3 py-0.5 rounded-sm">
+                                Recomendado
+                              </span>
+                            </div>
+                          )}
+                          
+                          {/* Fila 2: Pago por periodo - Cuadro Rojo (grande y destacado) */}
+                          <div className="text-center mb-1">
+                            <div className="flex items-baseline justify-center">
+                              <span className={`text-2xl font-bold ${exceeds ? 'text-red-500' : 'text-[#33FF57]'}`}>
+                                {formatCurrency(option.paymentPerPeriod)}
+                              </span>
+                              <span className="text-xs text-n-3 ml-1">
+                                /{getPeriodShortLabel(option.periodLabel)}
+                              </span>
+                            </div>
                           </div>
                           
-                          {/* Total a pagar (discreto) */}
-                          <div className="mt-1">
-                            <span className="text-n-3 text-[9px] block">Total a pagar</span>
-                            <span className="text-n-1/80 text-[10px]">
+                          {/* Fila 3: Total a pagar - Cuadro Azul (más pequeño) */}
+                          <div className="text-center">
+                            <span className="text-n-3 text-[10px] block">Total a pagar</span>
+                            <span className="text-n-1/90 text-[12px]">
                               {formatCurrency(option.totalPayment)}
                             </span>
                           </div>
                           
+                          {/* Indicador de seleccionado (discreto en la esquina) */}
+                          {isSelected && !exceeds && (
+                            <div className="absolute top-1 right-1">
+                              <svg className="w-4 h-4 text-[#33FF57]" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                          
                           {/* Mensaje de error si excede capacidad */}
                           {exceeds && (
-                            <span className="inline-flex items-center mt-1 text-red-500 text-[10px]">
-                              <svg className="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                              </svg>
-                              Excede capacidad
+                            <span className="text-center mt-1 text-red-500 text-[10px]">
+                              Excede capacidad de pago
                             </span>
                           )}
                         </div>
