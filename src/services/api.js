@@ -60,8 +60,17 @@ export async function getProductInfo(url) {
   // Limpiar la URL antes de enviarla al backend
   let cleanUrl = url.trim();
   
+  console.log('URL original recibida en getProductInfo:', cleanUrl);
+  
+  // Quitar el @ del inicio si existe
+  if (cleanUrl.startsWith('@')) {
+    console.log('URL comienza con @, removiendo el caracter inicial');
+    cleanUrl = cleanUrl.substring(1);
+  }
+  
   // Eliminar caracteres no válidos del inicio de la URL (como @ u otros)
   cleanUrl = cleanUrl.replace(/^[^a-zA-Z0-9]+/, '');
+  console.log('URL después de remover caracteres iniciales no válidos:', cleanUrl);
   
   // Asegurarse de que tenga http:// o https:// al inicio
   if (!cleanUrl.startsWith('http')) {
@@ -70,9 +79,10 @@ export async function getProductInfo(url) {
     if (!cleanUrl.startsWith('http')) {
       cleanUrl = 'https://' + cleanUrl;
     }
+    console.log('URL normalizada con https://', cleanUrl);
   }
   
-  console.log('Sending request to backend for URL:', cleanUrl);
+  console.log('URL final limpia para enviar al backend:', cleanUrl);
   
   try {
     console.log('Making request to:', `${API_URL}/product/info`);

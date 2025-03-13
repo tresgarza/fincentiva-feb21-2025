@@ -154,7 +154,13 @@ app.post('/api/product/info', async (req, res) => {
     let normalizedUrl = url.trim();
     
     // Eliminar caracteres no válidos del inicio de la URL (como @ u otros)
+    if (normalizedUrl.startsWith('@')) {
+      console.log('URL comienza con @, removiendo el caracter inicial');
+      normalizedUrl = normalizedUrl.substring(1);
+    }
+    
     normalizedUrl = normalizedUrl.replace(/^[^a-zA-Z0-9]+/, '');
+    console.log('URL después de remover caracteres iniciales no válidos:', normalizedUrl);
     
     // Eliminar cualquier caracter no válido al principio que no sea http o https
     if (!normalizedUrl.startsWith('http')) {
@@ -170,8 +176,8 @@ app.post('/api/product/info', async (req, res) => {
     console.log('Final normalized URL:', normalizedUrl);
 
     // Manejar enlaces acortados de Amazon (a.co)
-    if (normalizedUrl.includes('a.co')) {
-      console.log('Detected Amazon shortened URL, resolving to full URL...');
+    if (normalizedUrl.includes('a.co') || normalizedUrl.includes('amzn.to')) {
+      console.log('Detected Amazon shortened URL:', normalizedUrl);
       try {
         // SOLUCIÓN MÁS SIMPLE Y DIRECTA: usar fetch para seguir redirecciones
         // Probamos con esto primero ya que axios puede tener problemas con algunas redirecciones

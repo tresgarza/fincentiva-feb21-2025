@@ -63,8 +63,39 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
 
   const validateLink = (url) => {
     try {
-      // Limpiar la URL antes de validarla
+      // Mejor manejo de las URL acortadas
       let cleanUrl = url.trim();
+      
+      // Quitar el @ del inicio si existe
+      if (cleanUrl.startsWith('@')) {
+        cleanUrl = cleanUrl.substring(1);
+        console.log("Removido @ del inicio de la URL:", cleanUrl);
+      }
+      
+      // Detección directa de URL acortada de Amazon sin validación estricta
+      if (cleanUrl.includes('a.co/') || cleanUrl.includes('amzn.to/')) {
+        console.log("Enlace acortado de Amazon detectado directamente:", cleanUrl);
+        
+        // Asegurarse de que tenga http:// o https:// al inicio
+        if (!cleanUrl.startsWith('http')) {
+          cleanUrl = 'https://' + cleanUrl;
+          console.log("URL acortada normalizada con https://:", cleanUrl);
+        }
+        
+        // Mostrar notificación y aceptar la URL sin validación adicional
+        console.log("Aceptando URL acortada de Amazon sin validación estricta");
+        showLoader({
+          message: "Enlace acortado de Amazon detectado. Obteniendo información del producto, esto podría tomar un momento adicional...",
+          type: "info"
+        });
+        
+        // Actualizar el estado con la URL limpia
+        setProductLink(cleanUrl);
+        return true;
+      }
+      
+      // Procedimiento normal para otras URLs
+      console.log("Validando URL no acortada:", cleanUrl);
       
       // Eliminar caracteres no válidos del inicio de la URL (como @ u otros)
       cleanUrl = cleanUrl.replace(/^[^a-zA-Z0-9]+/, '');
@@ -80,35 +111,48 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
       
       console.log("URL limpia para validación:", cleanUrl);
       
-      const parsedUrl = new URL(cleanUrl);
-      const validDomains = [
-        'amazon.com',
-        'amazon.com.mx',
-        'mercadolibre.com.mx',
-        'mercadolibre.com',
-        'a.co',
-      ];
-      
-      const isValidDomain = validDomains.some(domain => parsedUrl.hostname.endsWith(domain));
-      
-      if (!isValidDomain) {
-        setError("Por favor ingresa un enlace válido de Amazon México o MercadoLibre México");
+      try {
+        const parsedUrl = new URL(cleanUrl);
+        console.log("URL parseada correctamente:", parsedUrl.toString());
+        
+        const validDomains = [
+          'amazon.com',
+          'amazon.com.mx',
+          'mercadolibre.com.mx',
+          'mercadolibre.com',
+          'a.co',
+          'amzn.to'
+        ];
+        
+        const hostname = parsedUrl.hostname;
+        console.log("Hostname para validación:", hostname);
+        
+        const isValidDomain = validDomains.some(domain => hostname.endsWith(domain));
+        console.log("¿Es un dominio válido?", isValidDomain, "para hostname", hostname);
+        
+        if (!isValidDomain) {
+          setError("Por favor ingresa un enlace válido de Amazon México o MercadoLibre México");
+          return false;
+        }
+        
+        if (hostname.endsWith('a.co') || hostname.endsWith('amzn.to')) {
+          console.log("Enlace acortado de Amazon detectado por hostname:", hostname);
+          showLoader({
+            message: "Enlace acortado de Amazon detectado. Obteniendo información del producto, esto podría tomar un momento adicional...",
+            type: "info"
+          });
+        }
+      } catch (parseError) {
+        console.error("Error al parsear URL:", parseError.message, "para URL:", cleanUrl);
+        setError("Por favor ingresa una URL válida");
         return false;
-      }
-      
-      if (parsedUrl.hostname.endsWith('a.co')) {
-        console.log("Enlace acortado de Amazon detectado. El sistema intentará resolverlo automáticamente.");
-        showLoader({
-          message: "Enlace acortado de Amazon detectado. Obteniendo información del producto, esto podría tomar un momento adicional...",
-          type: "info"
-        });
       }
       
       // Actualizar el estado con la URL limpia
       setProductLink(cleanUrl);
-      
       return true;
     } catch (err) {
+      console.error("Error general en validateLink:", err.message);
       setError("Por favor ingresa una URL válida");
       return false;
     }
@@ -251,6 +295,7 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
                       // Solo limpiar el @ inicial si existe
                       if (inputUrl.startsWith('@')) {
                         inputUrl = inputUrl.substring(1);
+                        console.log("Removido @ del inicio de la URL durante la entrada:", inputUrl);
                       }
                       
                       setProductLink(inputUrl);

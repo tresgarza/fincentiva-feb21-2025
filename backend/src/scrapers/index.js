@@ -16,61 +16,85 @@ const COOKIES = {
   'csm-hit': 'tb:s-XXXXX|1234567890&t:1234567890&adb:adblk_no'
 };
 
+// Función para limpiar y normalizar URLs de Amazon
+const cleanAmazonUrl = (url) => {
+  console.log('Limpiando URL de Amazon:', url);
+  
+  // Eliminar caracteres no válidos del inicio
+  let cleanUrl = url.replace(/^[^a-zA-Z0-9]+/, '');
+  
+  // Asegurar que comienza con https://
+  if (!cleanUrl.startsWith('http')) {
+    cleanUrl = 'https://' + cleanUrl;
+  }
+  
+  // Eliminar slash final si existe
+  cleanUrl = cleanUrl.replace(/\/$/, '');
+  
+  // Extraer el ASIN si está presente en la URL
+  let asin = null;
+  
+  // Patrones comunes para extraer ASIN
+  const dpPattern = /\/dp\/([A-Z0-9]{10})/;
+  const gppPattern = /\/gp\/product\/([A-Z0-9]{10})/;
+  const asinPattern = /\/ASIN\/([A-Z0-9]{10})/;
+  
+  // Intentar extraer ASIN usando los patrones
+  const dpMatch = cleanUrl.match(dpPattern);
+  const gppMatch = cleanUrl.match(gppPattern);
+  const asinMatch = cleanUrl.match(asinPattern);
+  
+  if (dpMatch) {
+    asin = dpMatch[1];
+    console.log('ASIN extraído del patrón dp:', asin);
+  } else if (gppMatch) {
+    asin = gppMatch[1];
+    console.log('ASIN extraído del patrón gp/product:', asin);
+  } else if (asinMatch) {
+    asin = asinMatch[1];
+    console.log('ASIN extraído del patrón ASIN:', asin);
+  }
+  
+  // Si tenemos un ASIN, construir una URL limpia
+  if (asin) {
+    cleanUrl = `https://www.amazon.com.mx/dp/${asin}`;
+    console.log('URL reconstruida con ASIN:', cleanUrl);
+  } else {
+    // Si no tenemos ASIN, limpiar parámetros de consulta innecesarios
+    try {
+      const urlObj = new URL(cleanUrl);
+      
+      // Mantener solo parámetros esenciales
+      const essentialParams = ['dp', 'asin', 'gp', 'product'];
+      const params = new URLSearchParams();
+      
+      for (const [key, value] of urlObj.searchParams.entries()) {
+        if (essentialParams.includes(key)) {
+          params.append(key, value);
+        }
+      }
+      
+      // Reconstruir URL con parámetros esenciales
+      urlObj.search = params.toString();
+      cleanUrl = urlObj.toString();
+      console.log('URL limpiada de parámetros innecesarios:', cleanUrl);
+    } catch (error) {
+      console.error('Error al limpiar parámetros de URL:', error.message);
+      // Mantener la URL como está si hay error
+    }
+  }
+  
+  return cleanUrl;
+};
+
 export async function scrapeAmazonProduct(url) {
   console.log('Starting Amazon scraping for URL:', url);
   
   try {
-    // Clean and normalize the URL
-    let cleanUrl = url;
+    // Limpiar y normalizar la URL
+    const cleanUrl = cleanAmazonUrl(url);
+    console.log('URL limpia para scraping:', cleanUrl);
     
-    // Remove any leading non-alphanumeric characters like @ symbol
-    cleanUrl = cleanUrl.replace(/^[^a-zA-Z0-9:]+/, '');
-    
-    // Ensure URL starts with https://
-    if (!cleanUrl.startsWith('http')) {
-      cleanUrl = 'https://' + cleanUrl;
-    }
-    
-    // Remove any trailing slash
-    cleanUrl = cleanUrl.replace(/\/+$/, '');
-    
-    // Remove query parameters that might affect scraping (keeping only essential ones)
-    // But keep ASIN and product identifiers
-    const urlObj = new URL(cleanUrl);
-    
-    // If we have URL params, only keep essential ones like dp or ASIN
-    if (urlObj.search) {
-      // Essential params to keep
-      const essentialParams = ['dp', 'asin', 'gp', 'product'];
-      const params = new URLSearchParams(urlObj.search);
-      const paramEntries = Array.from(params.entries());
-      
-      // Clear all params
-      urlObj.search = '';
-      
-      // Only keep essential params
-      paramEntries.forEach(([key, value]) => {
-        if (essentialParams.some(ep => key.toLowerCase().includes(ep.toLowerCase()))) {
-          urlObj.searchParams.append(key, value);
-        }
-      });
-      
-      cleanUrl = urlObj.toString();
-      console.log('Cleaned URL with essential params:', cleanUrl);
-    }
-    
-    // Extract ASIN if present in the URL
-    const asinMatch = cleanUrl.match(/\/(?:dp|product|gp\/product)\/([A-Z0-9]{10})/i);
-    if (asinMatch && asinMatch[1]) {
-      const asin = asinMatch[1];
-      console.log('Extracted ASIN from URL:', asin);
-      // Construct a clean URL with just the ASIN
-      cleanUrl = `https://www.amazon.com.mx/dp/${asin}`;
-      console.log('Normalized to clean ASIN URL:', cleanUrl);
-    }
-    
-    console.log('Cleaned URL:', cleanUrl);
-
     const config = {
       headers: {
         'User-Agent': USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
