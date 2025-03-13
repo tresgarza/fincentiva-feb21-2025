@@ -695,74 +695,86 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                       key={option.periods}
                       onClick={() => !exceeds && setSelectedPlan(option)}
                       className={`
-                        relative bg-n-7 rounded-md p-3
-                        ${exceeds ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.005] hover:shadow-sm hover:shadow-n-1/5'}
-                        transition-all duration-300 ease-in-out
+                        relative bg-n-7 rounded-md p-2
+                        ${exceeds ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.01] hover:shadow-md hover:shadow-[#33FF57]/20 hover:border-[#33FF57]/30 hover:border'}
+                        transition-all duration-200 ease-in-out
                         ${isSelected && !exceeds
                           ? 'ring-1 ring-[#33FF57] shadow-sm shadow-[#33FF57]/20 scale-[1.01]' 
                           : ''}
                       `}
                     >
-                      {/* Layout de la tarjeta en dos partes principales */}
-                      <div className="grid grid-cols-5 gap-2">
+                      {/* Layout de la tarjeta en dos partes principales - Más compacto */}
+                      <div className="grid grid-cols-5 gap-1">
                         {/* Columna izquierda (1/5) - Periodos */}
-                        <div className="col-span-1 flex flex-col justify-center items-center">
-                          <h3 className="text-lg font-bold text-n-1 text-center">
+                        <div className="col-span-1 flex flex-col justify-center items-center py-0.5">
+                          <h3 className="text-base font-bold text-n-1 leading-tight">
                             {option.periods}
                           </h3>
-                          <span className="text-xs text-n-3 text-center">
+                          <span className="text-[10px] text-n-3 leading-tight">
                             {option.periodLabel}
                           </span>
                         </div>
                         
                         {/* Columna derecha (4/5) - Información de pagos */}
-                        <div className="col-span-4 flex flex-col">
-                          {/* Fila 1: "Recomendado" - Cuadro Morado */}
-                          {isRecommended && !exceeds && (
-                            <div className="text-center mb-1">
-                              <span className="inline-block bg-[#33FF57] text-black text-xs font-medium px-3 py-0.5 rounded-sm">
+                        <div className="col-span-4 flex flex-col py-0.5">
+                          {/* "Recomendado" - Cuadro Morado y monto en misma línea para ahorrar espacio */}
+                          <div className="flex justify-between items-center mb-0.5">
+                            {isRecommended && !exceeds && (
+                              <span className="inline-block bg-[#33FF57] text-black text-[10px] font-medium px-2 py-0 rounded-sm">
                                 Recomendado
                               </span>
-                            </div>
-                          )}
+                            )}
+                            
+                            {/* Indicador de selección */}
+                            {isSelected && !exceeds && (
+                              <div className="flex items-center text-[#33FF57] text-[10px]">
+                                <svg className="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                <span>Seleccionado</span>
+                              </div>
+                            )}
+                          </div>
                           
-                          {/* Fila 2: Pago por periodo - Cuadro Rojo (grande y destacado) */}
-                          <div className="text-center mb-1">
+                          {/* Pago por periodo - Cuadro Rojo */}
+                          <div className="text-center">
                             <div className="flex items-baseline justify-center">
-                              <span className={`text-2xl font-bold ${exceeds ? 'text-red-500' : 'text-[#33FF57]'}`}>
+                              <span className={`text-xl font-bold ${exceeds ? 'text-red-500' : 'text-[#33FF57]'} leading-tight`}>
                                 {formatCurrency(option.paymentPerPeriod)}
                               </span>
-                              <span className="text-xs text-n-3 ml-1">
+                              <span className="text-[10px] text-n-3 ml-1">
                                 /{getPeriodShortLabel(option.periodLabel)}
                               </span>
                             </div>
                           </div>
                           
-                          {/* Fila 3: Total a pagar - Cuadro Azul (más pequeño) */}
+                          {/* Total a pagar - Cuadro Azul */}
                           <div className="text-center">
-                            <span className="text-n-3 text-[10px] block">Total a pagar</span>
-                            <span className="text-n-1/90 text-[12px]">
-                              {formatCurrency(option.totalPayment)}
-                            </span>
-                          </div>
-                          
-                          {/* Indicador de seleccionado (discreto en la esquina) */}
-                          {isSelected && !exceeds && (
-                            <div className="absolute top-1 right-1">
-                              <svg className="w-4 h-4 text-[#33FF57]" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                              </svg>
+                            <div className="flex justify-center items-baseline gap-1">
+                              <span className="text-n-3 text-[9px] leading-tight">Total:</span>
+                              <span className="text-n-1/90 text-[10px] leading-tight">
+                                {formatCurrency(option.totalPayment)}
+                              </span>
                             </div>
-                          )}
+                          </div>
                           
                           {/* Mensaje de error si excede capacidad */}
                           {exceeds && (
-                            <span className="text-center mt-1 text-red-500 text-[10px]">
-                              Excede capacidad de pago
-                            </span>
+                            <div className="text-center mt-0.5">
+                              <span className="text-red-500 text-[9px] leading-tight">
+                                Excede capacidad
+                              </span>
+                            </div>
                           )}
                         </div>
                       </div>
+                      
+                      {/* Indicador sutil de seleccionable en tarjetas no seleccionadas */}
+                      {!isSelected && !exceeds && (
+                        <div className="absolute bottom-1 right-1 opacity-40 group-hover:opacity-100">
+                          <span className="text-n-3 text-[9px]">Click para seleccionar</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
