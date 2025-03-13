@@ -16,6 +16,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
   const [showLoadingPopup, setShowLoadingPopup] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [advisorData, setAdvisorData] = useState(null);
+  const [expandedDescription, setExpandedDescription] = useState(false);
 
   // Mostrar notificación
   const showNotification = (message, type = 'success') => {
@@ -245,6 +246,12 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       console.error('Error al guardar simulación:', error);
       return null;
     }
+  };
+
+  // Añadir esta función para alternar la expansión de la descripción
+  const toggleDescription = (e) => {
+    e.stopPropagation(); // Evitar que el click se propague al contenedor
+    setExpandedDescription(!expandedDescription);
   };
 
   if (isLoading) {
@@ -663,11 +670,24 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                       {product.features && product.features.length > 0 && (
                         <div className="text-n-3">
                           <h3 className="text-sm font-semibold text-n-1 mb-0.5">Características</h3>
-                          <ul className="list-disc list-inside space-y-0.5 text-xs">
-                            {product.features.map((feature, index) => (
-                              <li key={index}>{feature}</li>
-                            ))}
-                          </ul>
+                          <div className={expandedDescription ? "h-auto" : "h-[60px] overflow-hidden relative"}>
+                            <ul className="list-disc list-inside space-y-0.5 text-xs">
+                              {product.features.map((feature, index) => (
+                                <li key={index}>{feature}</li>
+                              ))}
+                            </ul>
+                            {!expandedDescription && product.features.length > 3 && (
+                              <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-n-7 to-transparent"></div>
+                            )}
+                          </div>
+                          {product.features.length > 3 && (
+                            <button 
+                              onClick={toggleDescription}
+                              className="mt-1 px-2 py-0.5 text-[10px] bg-n-6 hover:bg-n-5 text-n-1 rounded-sm transition-colors"
+                            >
+                              {expandedDescription ? "Ver menos" : "Ver más"}
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -703,8 +723,28 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                           : ''}
                       `}
                     >
+                      {/* Indicadores superiores: clickable y recomendado */}
+                      {!isSelected && !exceeds && (
+                        <div className="absolute top-1 right-1">
+                          <span className="text-n-3 text-[9px] flex items-center">
+                            <svg className="w-2 h-2 mr-0.5" fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z"/>
+                              <path d="M8 4a.5.5 0 01.5.5v3h3a.5.5 0 010 1h-3v3a.5.5 0 01-1 0v-3h-3a.5.5 0 010-1h3v-3A.5.5 0 018 4z"/>
+                            </svg>
+                            Click para seleccionar
+                          </span>
+                        </div>
+                      )}
+                      {isRecommended && !exceeds && (
+                        <div className="absolute top-0 left-0 right-0 flex justify-center">
+                          <span className="inline-block bg-[#33FF57] text-black text-[10px] font-medium px-2 py-0 rounded-b-sm transform -translate-y-0">
+                            Recomendado
+                          </span>
+                        </div>
+                      )}
+                      
                       {/* Layout de la tarjeta en dos partes principales - Más compacto */}
-                      <div className="grid grid-cols-5 gap-1">
+                      <div className="grid grid-cols-5 gap-1 mt-4">
                         {/* Columna izquierda (1/5) - Periodos */}
                         <div className="col-span-1 flex flex-col justify-center items-center py-0.5">
                           <h3 className="text-base font-bold text-n-1 leading-tight">
@@ -717,24 +757,15 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                         
                         {/* Columna derecha (4/5) - Información de pagos */}
                         <div className="col-span-4 flex flex-col py-0.5">
-                          {/* "Recomendado" - Cuadro Morado y monto en misma línea para ahorrar espacio */}
-                          <div className="flex justify-between items-center mb-0.5">
-                            {isRecommended && !exceeds && (
-                              <span className="inline-block bg-[#33FF57] text-black text-[10px] font-medium px-2 py-0 rounded-sm">
-                                Recomendado
-                              </span>
-                            )}
-                            
-                            {/* Indicador de selección */}
-                            {isSelected && !exceeds && (
-                              <div className="flex items-center text-[#33FF57] text-[10px]">
-                                <svg className="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                                <span>Seleccionado</span>
-                              </div>
-                            )}
-                          </div>
+                          {/* Indicador de selección */}
+                          {isSelected && !exceeds && (
+                            <div className="flex justify-end items-center text-[#33FF57] text-[10px] mb-0.5">
+                              <svg className="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              <span>Seleccionado</span>
+                            </div>
+                          )}
                           
                           {/* Pago por periodo - Cuadro Rojo */}
                           <div className="text-center">
@@ -768,13 +799,6 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                           )}
                         </div>
                       </div>
-                      
-                      {/* Indicador sutil de seleccionable en tarjetas no seleccionadas */}
-                      {!isSelected && !exceeds && (
-                        <div className="absolute bottom-1 right-1 opacity-40 group-hover:opacity-100">
-                          <span className="text-n-3 text-[9px]">Click para seleccionar</span>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
