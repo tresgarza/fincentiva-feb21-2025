@@ -686,7 +686,9 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                 {[...paymentOptions].sort((a, b) => b.periods - a.periods).map((option, index) => {
                   const isSelected = selectedPlan === option;
                   const exceeds = exceedsPaymentCapacity(option.paymentPerPeriod, option.periodLabel);
-                  const isRecommended = paymentOptions.indexOf(option) === 0; // El primer elemento del array original es el recomendado
+                  
+                  // El plan recomendado es el que tiene más periodos de pago (mayor plazo)
+                  const isRecommended = option.periods === Math.max(...paymentOptions.map(opt => opt.periods));
                   
                   return (
                     <div
@@ -701,26 +703,35 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                           : ''}
                       `}
                     >
-                      {/* Etiqueta Recomendado (solo para el plan recomendado y no excedido) */}
-                      {isRecommended && !exceeds && (
-                        <div className="absolute top-0 right-0">
+                      {/* Badges en la parte superior: Recomendado y Seleccionado */}
+                      <div className="absolute top-0 right-0 flex gap-1">
+                        {isRecommended && !exceeds && (
                           <span className="inline-block bg-[#33FF57] text-black text-[9px] font-medium px-2 py-0.5 rounded-bl-md">
                             Recomendado
                           </span>
-                        </div>
-                      )}
+                        )}
+                        
+                        {isSelected && !exceeds && (
+                          <span className="inline-block bg-n-6 text-[#33FF57] text-[9px] font-medium px-2 py-0.5 rounded-bl-md">
+                            <svg className="w-3 h-3 inline-block mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Seleccionado
+                          </span>
+                        )}
+                      </div>
                       
-                      <div className="flex flex-row items-center">
+                      <div className="flex flex-row items-center pt-3">
                         {/* Left side - Period Information */}
-                        <div className="w-1/4 text-center">
+                        <div className="w-1/3 text-center">
                           <h3 className="text-sm font-bold text-n-1">
                             {option.periods} <span className="text-xs block sm:inline">{option.periodLabel}</span>
                           </h3>
                         </div>
                         
-                        {/* Middle - Payment per period */}
-                        <div className="w-2/4 border-l border-r border-n-6 px-3">
-                          <div className="flex items-baseline justify-center">
+                        {/* Right side - Payment info (usando 2/3 del espacio) */}
+                        <div className="w-2/3 border-l border-n-6 pl-3">
+                          <div className="flex items-baseline">
                             <span className={`text-xl font-bold ${exceeds ? 'text-red-500' : 'text-[#33FF57]'}`}>
                               {formatCurrency(option.paymentPerPeriod)}
                             </span>
@@ -730,27 +741,16 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                           </div>
                           
                           {/* Total a pagar (discreto) */}
-                          <div className="text-center mt-1">
+                          <div className="mt-1">
                             <span className="text-n-3 text-[9px] block">Total a pagar</span>
                             <span className="text-n-1/80 text-[10px]">
                               {formatCurrency(option.totalPayment)}
                             </span>
                           </div>
-                        </div>
-                        
-                        {/* Right side - Status indicator */}
-                        <div className="w-1/4 pl-2 flex items-center justify-center">
-                          {isSelected && !exceeds && (
-                            <span className="inline-flex items-center justify-center text-[#33FF57] text-xs font-medium">
-                              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                              </svg>
-                              Seleccionado
-                            </span>
-                          )}
                           
+                          {/* Mensaje de error si excede capacidad */}
                           {exceeds && (
-                            <span className="inline-flex items-center justify-center text-red-500 text-[10px]">
+                            <span className="inline-flex items-center mt-1 text-red-500 text-[10px]">
                               <svg className="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                               </svg>
