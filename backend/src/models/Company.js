@@ -18,6 +18,12 @@ export class Company {
       .single();
     
     if (error) throw error;
+    
+    // Ensure commission_rate is included with a default value of 0 if not present
+    if (data && !data.commission_rate) {
+      data.commission_rate = 0;
+    }
+    
     return data;
   }
 
@@ -293,7 +299,8 @@ export class Company {
         min_credit_amount: data.min_credit_amount,
         advisor_id: data.advisor_id,
         advisor_phone: data.advisor_phone,
-        Advisor: data.Advisor
+        Advisor: data.Advisor,
+        commission_rate: data.commission_rate || 0
       };
     } catch (error) {
       console.error('Error getting company:', error);

@@ -17,6 +17,29 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
   const [loadingStep, setLoadingStep] = useState(0);
   const [advisorData, setAdvisorData] = useState(null);
   const [expandedDescription, setExpandedDescription] = useState(false);
+  const [financingAmount, setFinancingAmount] = useState(0);
+
+  // Calcular el monto a financiar (con comisión incluida)
+  const calculateFinancingAmount = () => {
+    // Convertir la comisión a decimal (5.00 -> 0.05)
+    const commissionRate = (company.commission_rate || 0) / 100;
+    
+    if (product.title === "Crédito en Efectivo") {
+      // Para créditos personales: monto solicitado (la comisión se mostrará como deducción)
+      return product.price;
+    } else {
+      // Para productos: precio / (1 - comisión)
+      return commissionRate > 0 
+        ? Math.round(product.price / (1 - commissionRate) * 100) / 100
+        : product.price;
+    }
+  };
+
+  // Calcular la comisión para créditos personales (monto solicitado * comisión)
+  const calculatePersonalLoanCommission = () => {
+    const commissionRate = (company.commission_rate || 0) / 100;
+    return Math.round(product.price * commissionRate * 100) / 100;
+  };
 
   // Mostrar notificación
   const showNotification = (message, type = 'success') => {
@@ -84,8 +107,13 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
   };
 
   useEffect(() => {
+    // Calcular el monto a financiar cuando cambie el producto o la empresa
+    const amount = calculateFinancingAmount();
+    setFinancingAmount(amount);
+
     const calculatePayments = async () => {
       try {
+        // Usar el monto a financiar (con comisión incluida) para calcular los pagos
         const response = await fetch(`${API_URL}/companies/calculate-payments`, {
           method: 'POST',
           headers: {
@@ -93,7 +121,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
           },
           body: JSON.stringify({
             companyId: company.id,
-            amount: product.price,
+            amount: amount, // Monto a financiar con comisión
             monthlyIncome: company.monthly_income,
             paymentFrequency: company.payment_frequency
           })
@@ -605,9 +633,23 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                     <h2 className="text-2xl font-bold text-n-1 mb-2 text-center">
                       {product.title}
                     </h2>
-                    <div className="text-3xl font-bold text-[#33FF57] mb-4">
+                    <div className="text-3xl font-bold text-[#33FF57] mb-1">
                       {formatCurrency(product.price)}
                     </div>
+                    
+                    {/* Información de comisión para crédito en efectivo */}
+                    {company.commission_rate > 0 && (
+                      <div className="text-n-3 mb-4 text-sm">
+                        <span className="text-red-400">
+                          Comisión: {formatCurrency(calculatePersonalLoanCommission())}
+                        </span>
+                        <span> ({company.commission_rate}%)</span>
+                        <div className="text-n-3">
+                          Recibirás: {formatCurrency(product.price - calculatePersonalLoanCommission())}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="w-full space-y-3">
                       <div className="bg-n-6 rounded-lg p-3">
                         <h3 className="text-n-1 font-semibold mb-2">Beneficios del Crédito</h3>
@@ -650,11 +692,34 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                     </div>
                     <div>
                       <h2 className="text-lg font-bold text-n-1 mb-1.5">{product.title}</h2>
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-xl font-bold text-[#33FF57]">
-                          {formatCurrency(product.price)}
-                        </span>
+                      
+                      {/* Mostrar precio original y monto a financiar */}
+                      <div className="flex flex-col mb-2">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-n-3 text-sm">Precio:</span>
+                          <span className="text-n-1">
+                            {formatCurrency(product.price)}
+                          </span>
+                        </div>
+                        
+                        {company.commission_rate > 0 && (
+                          <>
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-n-3 text-sm">Comisión:</span>
+                              <span className="text-n-3 text-sm">
+                                {company.commission_rate}%
+                              </span>
+                            </div>
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-n-3 text-sm">Monto a financiar:</span>
+                              <span className="text-xl font-bold text-[#33FF57]">
+                                {formatCurrency(financingAmount)}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
+                      
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-2">
                         {product.rating && (
                           <div className="text-n-3 text-xs">
@@ -730,7 +795,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                             <svg className="w-2 h-2 mr-0.5" fill="currentColor" viewBox="0 0 16 16">
                               <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z"/>
                               <path d="M8 4a.5.5 0 01.5.5v3h3a.5.5 0 010 1h-3v3a.5.5 0 01-1 0v-3h-3a.5.5 0 010-1h3v-3A.5.5 0 018 4z"/>
-                          </svg>
+                            </svg>
                             Click para seleccionar
                         </span>
                         </div>
