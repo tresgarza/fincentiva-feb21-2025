@@ -154,3 +154,12 @@ npm run dev
 - Financing calculations
 - Company authentication
 - Responsive design
+
+## Actualizaciones Recientes
+
+### Marzo 2025
+
+- **Mejoras en el simulador de financiamiento**:
+  - Soporte para enlaces acortados de Amazon (formato a.co)
+  - Mejora en la resolución de URLs
+  - Mejoras en la visualización de los planes de financiamiento

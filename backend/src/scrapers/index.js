@@ -21,7 +21,46 @@ export async function scrapeAmazonProduct(url) {
   
   try {
     // Clean and normalize the URL
-    const cleanUrl = url.split('?')[0].split('&')[0];
+    let cleanUrl = url;
+    
+    // Remove any trailing slash
+    cleanUrl = cleanUrl.replace(/\/+$/, '');
+    
+    // Remove query parameters that might affect scraping (keeping only essential ones)
+    // But keep ASIN and product identifiers
+    const urlObj = new URL(cleanUrl);
+    
+    // If we have URL params, only keep essential ones like dp or ASIN
+    if (urlObj.search) {
+      // Essential params to keep
+      const essentialParams = ['dp', 'asin', 'gp', 'product'];
+      const params = new URLSearchParams(urlObj.search);
+      const paramEntries = Array.from(params.entries());
+      
+      // Clear all params
+      urlObj.search = '';
+      
+      // Only keep essential params
+      paramEntries.forEach(([key, value]) => {
+        if (essentialParams.some(ep => key.toLowerCase().includes(ep.toLowerCase()))) {
+          urlObj.searchParams.append(key, value);
+        }
+      });
+      
+      cleanUrl = urlObj.toString();
+      console.log('Cleaned URL with essential params:', cleanUrl);
+    }
+    
+    // Extract ASIN if present in the URL
+    const asinMatch = cleanUrl.match(/\/(?:dp|product|gp\/product)\/([A-Z0-9]{10})/i);
+    if (asinMatch && asinMatch[1]) {
+      const asin = asinMatch[1];
+      console.log('Extracted ASIN from URL:', asin);
+      // Construct a clean URL with just the ASIN
+      cleanUrl = `https://www.amazon.com.mx/dp/${asin}`;
+      console.log('Normalized to clean ASIN URL:', cleanUrl);
+    }
+    
     console.log('Cleaned URL:', cleanUrl);
 
     const config = {
