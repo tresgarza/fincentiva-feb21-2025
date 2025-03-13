@@ -463,7 +463,7 @@ Me interesa solicitar un crédito con las siguientes características:
 
 Me gustaría recibir más información sobre el proceso de solicitud.
 
-Acepto que esto es una simulación y que el crédito final puede variar, sujeto a verificación por parte de Financiera Incentiva y el área administrativa de la empresa.
+⚠️ *ACLARACIÓN IMPORTANTE*: Entiendo que la aprobación mostrada es pre-autorizada. Acepto que esto es una simulación y que el crédito final puede variar, sujeto a verificación por parte de Financiera Incentiva y el área administrativa de la empresa.
 ¡Gracias!`;
 
       // Esperar a que la animación termine (mínimo 3 segundos)
@@ -798,6 +798,13 @@ Acepto que esto es una simulación y que el crédito final puede variar, sujeto 
             <div className="flex flex-col h-full">
               <h2 className="text-lg font-bold text-center text-n-1 mb-2">Elige tu Plan de Pagos</h2>
               
+              {/* Mensaje de pre-autorización */}
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-md p-2 mb-3">
+                <p className="text-center text-xs text-blue-300">
+                  <span className="font-medium">Nota:</span> Las opciones mostradas son <span className="font-semibold">pre-autorizadas</span> y están sujetas a verificación final por parte de Financiera Incentiva.
+                </p>
+              </div>
+              
               {/* Contenedor para los planes en una sola columna vertical */}
               <div className="flex flex-col gap-2 flex-grow">
                 {/* Ordenar los planes de mayor a menor plazo */}
@@ -840,6 +847,16 @@ Acepto que esto es una simulación y que el crédito final puede variar, sujeto 
                         </span>
                         </div>
                       )}
+                      
+                      {/* Indicador de pre-autorización */}
+                      <div className="absolute top-1 left-1">
+                        <span className="text-blue-300 text-[9px] flex items-center">
+                          <svg className="w-2 h-2 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          Pre-autorizado
+                        </span>
+                      </div>
                       
                       {/* Layout de la tarjeta en dos partes principales - Más compacto */}
                       <div className="grid grid-cols-5 gap-1 mt-4">
