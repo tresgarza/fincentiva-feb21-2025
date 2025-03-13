@@ -17,6 +17,14 @@ const Plans = () => {
     }
   }, [productData, monthlyIncome, companyData, navigate]);
 
+  // Añadir efecto para hacer scroll al inicio cuando se cargan los planes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, []);
+
   const handleBack = () => {
     navigate('/inicio');
   };

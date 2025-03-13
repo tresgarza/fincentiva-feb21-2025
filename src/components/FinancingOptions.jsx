@@ -141,11 +141,24 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         // Guardar la simulación en Supabase
         await saveSimulation(data);
         
+        // Hacer scroll al inicio cuando los planes estén listos
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        
         // Llamamos a onLoaded cuando los planes estén listos
         onLoaded?.();
       } catch (err) {
         console.error('Error:', err);
         setError(err.message);
+        
+        // Hacer scroll al inicio incluso en caso de error
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        
         // También llamamos a onLoaded en caso de error
         onLoaded?.();
       } finally {

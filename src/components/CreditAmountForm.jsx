@@ -165,7 +165,7 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
               {/* Campo de Ingresos */}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="income" className="text-n-4 text-sm">
-                  ¿Cuánto ganas por {getPaymentFrequencyLabel()}?
+                  ¿Cuánto ganas por {getPaymentFrequencyLabel()}? (neto)
                 </label>
                 <div className="relative group">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-n-4">
