@@ -682,16 +682,18 @@ Me gustaría recibir más información sobre el proceso de solicitud.
               
               {/* Contenedor para los planes en una sola columna vertical */}
               <div className="flex flex-col gap-2 flex-grow">
-                {paymentOptions.map((option, index) => {
+                {/* Ordenar los planes de mayor a menor plazo */}
+                {[...paymentOptions].sort((a, b) => b.periods - a.periods).map((option, index) => {
                   const isSelected = selectedPlan === option;
                   const exceeds = exceedsPaymentCapacity(option.paymentPerPeriod, option.periodLabel);
+                  const isRecommended = paymentOptions.indexOf(option) === 0; // El primer elemento del array original es el recomendado
                   
                   return (
                     <div
                       key={option.periods}
                       onClick={() => !exceeds && setSelectedPlan(option)}
                       className={`
-                        relative bg-n-7 rounded-md p-2
+                        relative bg-n-7 rounded-md p-3
                         ${exceeds ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.005] hover:shadow-sm hover:shadow-n-1/5'}
                         transition-all duration-300 ease-in-out
                         ${isSelected && !exceeds
@@ -699,26 +701,21 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                           : ''}
                       `}
                     >
+                      {/* Etiqueta Recomendado (solo para el plan recomendado y no excedido) */}
+                      {isRecommended && !exceeds && (
+                        <div className="absolute top-0 right-0">
+                          <span className="inline-block bg-[#33FF57] text-black text-[9px] font-medium px-2 py-0.5 rounded-bl-md">
+                            Recomendado
+                          </span>
+                        </div>
+                      )}
+                      
                       <div className="flex flex-row items-center">
                         {/* Left side - Period Information */}
-                        <div className="w-1/4 text-center pr-2">
+                        <div className="w-1/4 text-center">
                           <h3 className="text-sm font-bold text-n-1">
                             {option.periods} <span className="text-xs block sm:inline">{option.periodLabel}</span>
                           </h3>
-                          
-                          {/* Badges para versión móvil */}
-                          <div className="sm:hidden mt-1">
-                            {index === 0 && !exceeds && (
-                              <span className="inline-flex items-center justify-center bg-[#33FF57]/10 text-[#33FF57] text-[8px] px-1 py-0.5 rounded-sm w-full">
-                                Recomendado
-                              </span>
-                            )}
-                            {exceeds && (
-                              <span className="inline-flex items-center justify-center bg-red-500/10 text-red-500 text-[8px] px-1 py-0.5 rounded-sm w-full">
-                                Excede capacidad
-                              </span>
-                            )}
-                          </div>
                         </div>
                         
                         {/* Middle - Payment per period */}
@@ -741,49 +738,27 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                           </div>
                         </div>
                         
-                        {/* Right side - Badges and selection indicator */}
-                        <div className="w-1/4 pl-2 flex flex-col items-center justify-center">
-                          {/* Badges solo para pantallas más grandes */}
-                          <div className="hidden sm:block">
-                            {index === 0 && !exceeds && (
-                              <span className="inline-flex items-center bg-[#33FF57]/10 text-[#33FF57] text-[9px] px-1.5 py-0.5 rounded-sm">
-                                <svg className="w-2 h-2 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                                Recomendado
-                              </span>
-                            )}
-                            
-                            {exceeds && (
-                              <span className="inline-flex items-center bg-red-500/10 text-red-500 text-[9px] px-1.5 py-0.5 rounded-sm">
-                                <svg className="w-2 h-2 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                </svg>
-                                Excede capacidad
-                              </span>
-                            )}
-                          </div>
+                        {/* Right side - Status indicator */}
+                        <div className="w-1/4 pl-2 flex items-center justify-center">
+                          {isSelected && !exceeds && (
+                            <span className="inline-flex items-center justify-center text-[#33FF57] text-xs font-medium">
+                              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              Seleccionado
+                            </span>
+                          )}
                           
-                          <button
-                            className={`mt-2 py-1 px-2 rounded-md text-[10px] font-medium ${
-                              isSelected && !exceeds 
-                                ? 'bg-[#33FF57]/20 text-[#33FF57]' 
-                                : exceeds 
-                                  ? 'bg-red-500/10 text-red-500 cursor-not-allowed' 
-                                  : 'bg-n-6 text-n-3 hover:bg-n-5'
-                            }`}
-                            disabled={exceeds}
-                          >
-                            {isSelected ? 'Seleccionado' : 'Seleccionar'}
-                          </button>
+                          {exceeds && (
+                            <span className="inline-flex items-center justify-center text-red-500 text-[10px]">
+                              <svg className="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                              </svg>
+                              Excede capacidad
+                            </span>
+                          )}
                         </div>
                       </div>
-                      
-                      {exceeds && (
-                        <div className="text-[9px] text-red-500 text-center mt-1">
-                          Excede tu capacidad de pago
-                        </div>
-                      )}
                     </div>
                   );
                 })}
