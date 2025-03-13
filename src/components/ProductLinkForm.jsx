@@ -6,6 +6,12 @@ import { BsArrowRight, BsClipboard, BsCheckCircle } from "react-icons/bs";
 import { motion } from "framer-motion";
 
 const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
+  // Debug logs
+  console.log('ProductLinkForm inicializado');
+  console.log('showLoader es:', typeof showLoader, showLoader ? 'definido' : 'indefinido');
+  console.log('company:', company);
+  console.log('isLoading:', isLoading);
+  
   const [productLink, setProductLink] = useState("");
   const [income, setIncome] = useState("");
   const [error, setError] = useState("");
@@ -84,10 +90,15 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
         
         // Mostrar notificación y aceptar la URL sin validación adicional
         console.log("Aceptando URL acortada de Amazon sin validación estricta");
-        showLoader({
-          message: "Enlace acortado de Amazon detectado. Obteniendo información del producto, esto podría tomar un momento adicional...",
-          type: "info"
-        });
+        // Verificar si showLoader es una función antes de llamarla
+        if (typeof showLoader === 'function') {
+          showLoader({
+            message: "Enlace acortado de Amazon detectado. Obteniendo información del producto, esto podría tomar un momento adicional...",
+            type: "info"
+          });
+        } else {
+          console.log("showLoader no es una función o no está disponible");
+        }
         
         // Actualizar el estado con la URL limpia
         setProductLink(cleanUrl);
@@ -137,10 +148,14 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
         
         if (hostname.endsWith('a.co') || hostname.endsWith('amzn.to')) {
           console.log("Enlace acortado de Amazon detectado por hostname:", hostname);
-          showLoader({
-            message: "Enlace acortado de Amazon detectado. Obteniendo información del producto, esto podría tomar un momento adicional...",
-            type: "info"
-          });
+          if (typeof showLoader === 'function') {
+            showLoader({
+              message: "Enlace acortado de Amazon detectado. Obteniendo información del producto, esto podría tomar un momento adicional...",
+              type: "info"
+            });
+          } else {
+            console.log("showLoader no es una función o no está disponible");
+          }
         }
       } catch (parseError) {
         console.error("Error al parsear URL:", parseError.message, "para URL:", cleanUrl);
@@ -162,16 +177,47 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
     e.preventDefault();
     if (isSubmitting || isLoading) return;
     
-    if (!validateLink(productLink)) return;
-    if (!income) {
-      setError("Por favor ingresa tus ingresos");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError("");
-
     try {
+      // Limpiar la URL antes de validarla
+      let cleanUrl = productLink.trim();
+      
+      // Limpiar @ del inicio si existe
+      if (cleanUrl.startsWith('@')) {
+        cleanUrl = cleanUrl.substring(1);
+        console.log("Removido @ del inicio de la URL en handleSubmit:", cleanUrl);
+      }
+      
+      // Asegurarse de que tenga http:// o https:// al inicio
+      if (!cleanUrl.startsWith('http')) {
+        cleanUrl = 'https://' + cleanUrl;
+        console.log("URL normalizada con https:// en handleSubmit:", cleanUrl);
+      }
+      
+      // Actualizar el estado con la URL limpia
+      setProductLink(cleanUrl);
+      
+      // Validar link con la URL limpia
+      if (!validateLink(cleanUrl)) {
+        console.log("Validación de URL falló en handleSubmit");
+        return;
+      }
+      
+      if (!income) {
+        setError("Por favor ingresa tus ingresos");
+        return;
+      }
+
+      setIsSubmitting(true);
+      setError("");
+
+      // Mostrar indicador de carga si showLoader está disponible
+      if (typeof showLoader === 'function') {
+        showLoader({
+          message: "Procesando tu solicitud...",
+          type: "info"
+        });
+      }
+
       let monthlyIncome = parseFloat(income);
       switch (company?.payment_frequency) {
         case 'weekly':
@@ -183,17 +229,24 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
           break;
       }
 
-      await onSubmit(productLink, parseFloat(income), monthlyIncome);
+      console.log(`Enviando solicitud con URL: ${cleanUrl} y ingresos: ${monthlyIncome}`);
+      await onSubmit(cleanUrl, parseFloat(income), monthlyIncome);
     } catch (err) {
-      console.error('Error al procesar el enlace:', err);
+      console.error('Error detallado al procesar el enlace:', err);
       
       if (err.message && err.message.includes('resolver el enlace acortado')) {
         setError("No se pudo procesar el enlace acortado de Amazon. Por favor intenta copiar el enlace completo directamente desde el navegador.");
+      } else if (err.message && err.message.includes('Failed to fetch')) {
+        setError("Error de conexión con el servidor. Por favor verifica tu conexión a internet.");
       } else {
         setError(err.message || "Ocurrió un error al procesar tu solicitud");
       }
     } finally {
       setIsSubmitting(false);
+      // Ocultar indicador de carga si showLoader está disponible
+      if (typeof showLoader === 'function') {
+        showLoader(null);
+      }
     }
   };
 
@@ -289,17 +342,24 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
                     id="productLink"
                     value={productLink}
                     onChange={(e) => {
-                      // Limpiar la URL al cambiar, pero solo de caracteres no válidos al inicio
-                      let inputUrl = e.target.value;
-                      
-                      // Solo limpiar el @ inicial si existe
-                      if (inputUrl.startsWith('@')) {
-                        inputUrl = inputUrl.substring(1);
-                        console.log("Removido @ del inicio de la URL durante la entrada:", inputUrl);
+                      try {
+                        // Limpiar la URL al cambiar, pero solo de caracteres no válidos al inicio
+                        let inputUrl = e.target.value;
+                        console.log("URL original ingresada:", inputUrl);
+                        
+                        // Solo limpiar el @ inicial si existe
+                        if (inputUrl.startsWith('@')) {
+                          inputUrl = inputUrl.substring(1);
+                          console.log("Removido @ del inicio de la URL durante la entrada:", inputUrl);
+                        }
+                        
+                        setProductLink(inputUrl);
+                        setError("");
+                      } catch (err) {
+                        console.error("Error en onChange de productLink:", err.message);
+                        // Seguimos estableciendo el valor tal como está para no bloquear la entrada del usuario
+                        setProductLink(e.target.value);
                       }
-                      
-                      setProductLink(inputUrl);
-                      setError("");
                     }}
                     placeholder="https://www.amazon.com.mx/producto..."
                     className="w-full px-3 py-2.5 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors text-sm"
