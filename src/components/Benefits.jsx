@@ -42,7 +42,7 @@ const Benefits = () => {
     {
       id: "5",
       title: "Múltiples Opciones",
-      text: "Financia productos de tus tiendas favoritas o solicita efectivo según tus necesidades.",
+      text: "Financia productos de tus tiendas favoritas o solicita crédito según tus necesidades.",
       iconComponent: <MdOutlineLocalOffer className="text-[#33FF57] text-4xl" />,
     },
   ];
@@ -58,7 +58,7 @@ const Benefits = () => {
                 strings: [
                   'Beneficios que te Encantan',
                   'Tu Éxito es Nuestra Prioridad',
-                  'Financiamiento Simple y Rápido',
+                  'Crédito Fácil y Rápido',
                   'Soluciones a tu Medida',
                   'El Futuro de las Finanzas'
                 ],

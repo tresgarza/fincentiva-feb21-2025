@@ -24,7 +24,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     // Convertir la comisión a decimal (5.00 -> 0.05)
     const commissionRate = (company.commission_rate || 0) / 100;
     
-    if (product.title === "Crédito Personal" || product.title === "Crédito personal") {
+    if (product.title === "Crédito Personal") {
       // Para créditos personales: monto solicitado (la comisión se mostrará como deducción)
       return product.price;
     } else {
@@ -37,8 +37,12 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
 
   // Calcular la comisión para créditos personales (monto solicitado * comisión)
   const calculatePersonalLoanCommission = () => {
+    if (product.title !== "Crédito Personal") return 0;
+    
     const commissionRate = (company.commission_rate || 0) / 100;
-    return Math.round(product.price * commissionRate * 100) / 100;
+    return commissionRate > 0 
+      ? Math.round(product.price * commissionRate * 100) / 100
+      : 0;
   };
 
   // Mostrar notificación
@@ -223,7 +227,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       }
       
       // Determinar si es una simulación de producto o una solicitud de efectivo
-      const isProductSimulation = product.title !== "Crédito Personal" && product.title !== "Crédito personal";
+      const isProductSimulation = product.title !== "Crédito Personal";
       console.log('Tipo de simulación:', isProductSimulation ? 'Producto' : 'Efectivo');
       
       // Datos comunes para ambos tipos de simulación
@@ -335,7 +339,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       }, 1000);
 
       // Determine simulation type
-      const simulationType = (product.title === "Crédito Personal" || product.title === "Crédito personal") ? 'cash' : 'product';
+      const simulationType = product.title === "Crédito Personal" ? 'cash' : 'product';
       console.log('Tipo de simulación en handlePlanSelection:', simulationType);
       
       // Preparar datos adicionales del producto
@@ -408,11 +412,11 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
 Me interesa solicitar un crédito con las siguientes características:
 
 *Datos del Producto:*
-📱 Producto: ${product.title === "Crédito personal" ? "Crédito Personal" : product.title}
-💰 Precio: ${formatCurrency((product.title !== "Crédito Personal" && product.title !== "Crédito personal") ? financingAmount : product.price)}`;
+📱 Producto: ${product.title}
+💰 Precio: ${formatCurrency(product.price)}`;
 
       // Añadir enlace del producto si existe
-      if (product.url && product.title !== "Crédito Personal" && product.title !== "Crédito personal") {
+      if (product.url && product.title !== "Crédito Personal") {
         message += `
 🔗 Enlace: ${product.url}`;
       }
@@ -425,14 +429,14 @@ Me interesa solicitar un crédito con las siguientes características:
 💳 Pago por ${selectedPlan.periodLabel}: ${formatCurrency(selectedPlan.paymentPerPeriod)}
 💵 Total a pagar: ${formatCurrency(selectedPlan.totalPayment)}
 
+
 *Datos de Contacto:*
 👤 Nombre: ${userData.firstName} ${userData.lastName}
 📞 Teléfono: ${userData.phone || 'No proporcionado'}
 
 Me gustaría recibir más información sobre el proceso de solicitud.
 
-*Nota:* Esta simulación es solo una referencia y el crédito final puede variar de acuerdo a la verificación realizada por Financiera Incentiva y el área administrativa de mi empresa.
-
+Acepto que esto es una simulación y que el crédito final puede variar, sujeto a verificación por parte de Financiera Incentiva y el área administrativa de la empresa.
 ¡Gracias!`;
 
       // Esperar a que la animación termine (mínimo 3 segundos)
@@ -608,7 +612,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
             {/* Product Info Column */}
             <div className="bg-n-7 rounded-lg p-3">
               <div className="flex flex-col gap-2">
-                {product.title === "Crédito Personal" || product.title === "Crédito personal" ? (
+                {product.title === "Crédito Personal" ? (
                   <div className="flex flex-col items-center">
                     <div className="w-[120px] h-[120px] relative mb-4">
                       {/* Círculo exterior animado */}
@@ -700,8 +704,8 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                         <div className="flex items-baseline gap-2">
                           <span className="text-n-3 text-sm">Precio:</span>
                           <span className="text-n-1">
-                            {formatCurrency(product.price)}
-                          </span>
+                          {formatCurrency(product.price)}
+                        </span>
                         </div>
                         
                         {company.commission_rate > 0 && (

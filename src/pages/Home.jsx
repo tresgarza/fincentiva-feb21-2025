@@ -64,7 +64,7 @@ const Home = () => {
     try {
       setMonthlyIncome(income);
       const simulatedProduct = {
-        title: "Crédito en Efectivo",
+        title: "Crédito Personal",
         price: amount,
         features: ["Financiamiento directo", "Disponibilidad inmediata"]
       };

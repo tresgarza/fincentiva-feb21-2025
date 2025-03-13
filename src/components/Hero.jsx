@@ -59,7 +59,7 @@ const Hero = ({
       icon: "💳"
     },
     {
-      name: "Solicitar Efectivo",
+      name: "Crédito Personal",
       description: "Calcula tu capacidad de crédito y obtén el efectivo que necesitas",
       isSimulator: true,
       simulatorType: 'cash',
