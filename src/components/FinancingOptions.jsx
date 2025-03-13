@@ -24,7 +24,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     // Convertir la comisión a decimal (5.00 -> 0.05)
     const commissionRate = (company.commission_rate || 0) / 100;
     
-    if (product.title === "Crédito Personal") {
+    if (product.title === "Crédito Personal" || product.title === "Crédito personal") {
       // Para créditos personales: monto solicitado (la comisión se mostrará como deducción)
       return product.price;
     } else {
@@ -223,7 +223,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       }
       
       // Determinar si es una simulación de producto o una solicitud de efectivo
-      const isProductSimulation = product.title !== "Crédito Personal";
+      const isProductSimulation = product.title !== "Crédito Personal" && product.title !== "Crédito personal";
       console.log('Tipo de simulación:', isProductSimulation ? 'Producto' : 'Efectivo');
       
       // Datos comunes para ambos tipos de simulación
@@ -335,7 +335,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       }, 1000);
 
       // Determine simulation type
-      const simulationType = product.title === "Crédito Personal" ? 'cash' : 'product';
+      const simulationType = (product.title === "Crédito Personal" || product.title === "Crédito personal") ? 'cash' : 'product';
       console.log('Tipo de simulación en handlePlanSelection:', simulationType);
       
       // Preparar datos adicionales del producto
@@ -408,11 +408,11 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
 Me interesa solicitar un crédito con las siguientes características:
 
 *Datos del Producto:*
-📱 Producto: ${product.title}
-💰 Precio: ${formatCurrency(product.title !== "Crédito Personal" ? financingAmount : product.price)}`;
+📱 Producto: ${product.title === "Crédito personal" ? "Crédito Personal" : product.title}
+💰 Precio: ${formatCurrency((product.title !== "Crédito Personal" && product.title !== "Crédito personal") ? financingAmount : product.price)}`;
 
       // Añadir enlace del producto si existe
-      if (product.url && product.title !== "Crédito Personal") {
+      if (product.url && product.title !== "Crédito Personal" && product.title !== "Crédito personal") {
         message += `
 🔗 Enlace: ${product.url}`;
       }
@@ -608,7 +608,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
             {/* Product Info Column */}
             <div className="bg-n-7 rounded-lg p-3">
               <div className="flex flex-col gap-2">
-                {product.title === "Crédito Personal" ? (
+                {product.title === "Crédito Personal" || product.title === "Crédito personal" ? (
                   <div className="flex flex-col items-center">
                     <div className="w-[120px] h-[120px] relative mb-4">
                       {/* Círculo exterior animado */}
@@ -639,7 +639,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                       {formatCurrency(product.price)}
                     </div>
                     
-                    {/* Información de comisión para crédito en efectivo */}
+                    {/* Información de comisión para crédito personal */}
                     {company.commission_rate > 0 && (
                       <div className="text-n-3 mb-4 text-sm">
                         <span className="text-red-400">
