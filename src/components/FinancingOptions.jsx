@@ -425,8 +425,22 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
 Me interesa solicitar un crédito con las siguientes características:
 
 *Datos del Producto:*
-📱 Producto: ${product.title}
-💰 Precio: ${formatCurrency(product.price)}`;
+📱 Producto: ${product.title}`;
+
+      // Para productos, mostrar tanto el precio original como el monto a financiar con comisión
+      if (product.title !== "Crédito Personal") {
+        message += `
+💰 Precio original: ${formatCurrency(product.price)}`;
+        
+        if (company.commission_rate > 0) {
+          message += `
+💵 Monto a financiar (incluye comisión ${company.commission_rate}%): ${formatCurrency(financingAmount)}`;
+        }
+      } else {
+        // Para crédito personal solo mostrar el monto solicitado
+        message += `
+💰 Monto solicitado: ${formatCurrency(product.price)}`;
+      }
 
       // Añadir enlace del producto si existe
       if (product.url && product.title !== "Crédito Personal") {
