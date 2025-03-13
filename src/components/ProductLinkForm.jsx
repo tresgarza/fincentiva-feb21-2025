@@ -63,7 +63,24 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
 
   const validateLink = (url) => {
     try {
-      const parsedUrl = new URL(url);
+      // Limpiar la URL antes de validarla
+      let cleanUrl = url.trim();
+      
+      // Eliminar caracteres no válidos del inicio de la URL (como @ u otros)
+      cleanUrl = cleanUrl.replace(/^[^a-zA-Z0-9]+/, '');
+      
+      // Asegurarse de que tenga http:// o https:// al inicio
+      if (!cleanUrl.startsWith('http')) {
+        cleanUrl = cleanUrl.replace(/^[^h]+/, '');
+        
+        if (!cleanUrl.startsWith('http')) {
+          cleanUrl = 'https://' + cleanUrl;
+        }
+      }
+      
+      console.log("URL limpia para validación:", cleanUrl);
+      
+      const parsedUrl = new URL(cleanUrl);
       const validDomains = [
         'amazon.com',
         'amazon.com.mx',
@@ -86,6 +103,9 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
           type: "info"
         });
       }
+      
+      // Actualizar el estado con la URL limpia
+      setProductLink(cleanUrl);
       
       return true;
     } catch (err) {
@@ -225,8 +245,16 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
                     id="productLink"
                     value={productLink}
                     onChange={(e) => {
-                      setProductLink(e.target.value);
-                            setError("");
+                      // Limpiar la URL al cambiar, pero solo de caracteres no válidos al inicio
+                      let inputUrl = e.target.value;
+                      
+                      // Solo limpiar el @ inicial si existe
+                      if (inputUrl.startsWith('@')) {
+                        inputUrl = inputUrl.substring(1);
+                      }
+                      
+                      setProductLink(inputUrl);
+                      setError("");
                     }}
                     placeholder="https://www.amazon.com.mx/producto..."
                     className="w-full px-3 py-2.5 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors text-sm"

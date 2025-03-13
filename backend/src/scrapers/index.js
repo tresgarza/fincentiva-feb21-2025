@@ -23,6 +23,14 @@ export async function scrapeAmazonProduct(url) {
     // Clean and normalize the URL
     let cleanUrl = url;
     
+    // Remove any leading non-alphanumeric characters like @ symbol
+    cleanUrl = cleanUrl.replace(/^[^a-zA-Z0-9:]+/, '');
+    
+    // Ensure URL starts with https://
+    if (!cleanUrl.startsWith('http')) {
+      cleanUrl = 'https://' + cleanUrl;
+    }
+    
     // Remove any trailing slash
     cleanUrl = cleanUrl.replace(/\/+$/, '');
     

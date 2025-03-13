@@ -57,7 +57,22 @@ export async function verifyCompanyPassword(companyId, password) {
 }
 
 export async function getProductInfo(url) {
-  console.log('Sending request to backend for URL:', url);
+  // Limpiar la URL antes de enviarla al backend
+  let cleanUrl = url.trim();
+  
+  // Eliminar caracteres no válidos del inicio de la URL (como @ u otros)
+  cleanUrl = cleanUrl.replace(/^[^a-zA-Z0-9]+/, '');
+  
+  // Asegurarse de que tenga http:// o https:// al inicio
+  if (!cleanUrl.startsWith('http')) {
+    cleanUrl = cleanUrl.replace(/^[^h]+/, '');
+    
+    if (!cleanUrl.startsWith('http')) {
+      cleanUrl = 'https://' + cleanUrl;
+    }
+  }
+  
+  console.log('Sending request to backend for URL:', cleanUrl);
   
   try {
     console.log('Making request to:', `${API_URL}/product/info`);
@@ -68,7 +83,7 @@ export async function getProductInfo(url) {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ url: cleanUrl }),
     });
 
     console.log('Received response status:', response.status);

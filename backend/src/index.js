@@ -61,6 +61,67 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Debug endpoint to test URL resolution
+app.get('/debug/resolve-url', async (req, res) => {
+  try {
+    const { url } = req.query;
+    
+    if (!url) {
+      return res.status(400).json({ error: 'URL parameter is required' });
+    }
+    
+    console.log('Debug: Attempting to resolve URL:', url);
+    
+    // Normalizar la URL: eliminar espacios, asegurar https://
+    let normalizedUrl = url.trim();
+    
+    // Eliminar caracteres no válidos del inicio de la URL (como @ u otros)
+    normalizedUrl = normalizedUrl.replace(/^[^a-zA-Z0-9]+/, '');
+    
+    // Eliminar cualquier caracter no válido al principio que no sea http o https
+    if (!normalizedUrl.startsWith('http')) {
+      normalizedUrl = normalizedUrl.replace(/^[^h]+/, '');
+      
+      // Si sigue sin empezar con http, agregar https://
+      if (!normalizedUrl.startsWith('http')) {
+        normalizedUrl = 'https://' + normalizedUrl;
+      }
+    }
+    
+    console.log('Debug: Normalized URL:', normalizedUrl);
+    
+    // Intentar resolver con fetch (seguir redirects)
+    const fetchResponse = await fetch(normalizedUrl, {
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      },
+      timeout: 30000
+    });
+    
+    const finalUrl = fetchResponse.url;
+    console.log('Debug: Final URL after redirection:', finalUrl);
+    
+    return res.json({
+      originalUrl: url,
+      normalizedUrl: normalizedUrl,
+      resolvedUrl: finalUrl,
+      success: true
+    });
+  } catch (error) {
+    console.error('Debug: Error resolving URL:', error);
+    return res.status(500).json({
+      error: 'Error resolving URL',
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 // Root route
 app.get('/', (req, res) => {
   res.json({
@@ -91,10 +152,22 @@ app.post('/api/product/info', async (req, res) => {
 
     // Normalizar la URL: eliminar espacios, asegurar https://
     let normalizedUrl = url.trim();
+    
+    // Eliminar caracteres no válidos del inicio de la URL (como @ u otros)
+    normalizedUrl = normalizedUrl.replace(/^[^a-zA-Z0-9]+/, '');
+    
+    // Eliminar cualquier caracter no válido al principio que no sea http o https
     if (!normalizedUrl.startsWith('http')) {
-      normalizedUrl = 'https://' + normalizedUrl;
+      normalizedUrl = normalizedUrl.replace(/^[^h]+/, '');
+      
+      // Si sigue sin empezar con http, agregar https://
+      if (!normalizedUrl.startsWith('http')) {
+        normalizedUrl = 'https://' + normalizedUrl;
+      }
       console.log('Normalized URL to include https://', normalizedUrl);
     }
+    
+    console.log('Final normalized URL:', normalizedUrl);
 
     // Manejar enlaces acortados de Amazon (a.co)
     if (normalizedUrl.includes('a.co')) {
