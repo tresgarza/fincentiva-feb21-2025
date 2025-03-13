@@ -35,10 +35,10 @@ export class Company {
 
   static getPaymentPeriods(paymentFrequency) {
     const periods = {
-      'weekly': [52, 40, 28],     // ~12 meses, ~9 meses, ~6 meses
-      'biweekly': [24, 18, 12],   // 12 meses, 9 meses, 6 meses
-      'fortnightly': [26, 20, 13], // ~12 meses, ~9 meses, ~6 meses
-      'monthly': [12, 9, 6]       // 12 meses, 9 meses, 6 meses
+      'weekly': [12, 16, 24, 32, 36, 52],     // Nueva estructura de periodos semanales
+      'biweekly': [6, 8, 12, 16, 18, 24],     // Nueva estructura de periodos quincenales
+      'fortnightly': [6, 8, 12, 16, 18, 24],  // Nueva estructura de periodos catorcenales
+      'monthly': [3, 4, 6, 8, 9, 12]          // Nueva estructura de periodos mensuales
     };
     return periods[paymentFrequency] || periods.monthly;
   }

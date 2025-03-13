@@ -679,7 +679,9 @@ Me gustaría recibir más información sobre el proceso de solicitud.
             {/* Financing Options Column */}
             <div className="flex flex-col h-full">
               <h2 className="text-lg font-bold text-center text-n-1 mb-2">Elige tu Plan de Financiamiento</h2>
-              <div className="flex flex-col gap-1.5 flex-grow">
+              
+              {/* Contenedor para los planes con grid en pantallas medianas o más grandes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5 flex-grow">
                 {paymentOptions.map((option, index) => {
                   const isSelected = selectedPlan === option;
                   const exceeds = exceedsPaymentCapacity(option.paymentPerPeriod, option.periodLabel);
@@ -689,7 +691,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                       key={option.periods}
                       onClick={() => !exceeds && setSelectedPlan(option)}
                       className={`
-                        relative bg-n-7 rounded-md p-2 
+                        relative bg-n-7 rounded-md p-1.5 
                         ${exceeds ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.005] hover:shadow-sm hover:shadow-n-1/5'}
                         transition-all duration-300 ease-in-out
                         ${isSelected && !exceeds
@@ -699,8 +701,8 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                     >
                       {/* Recommended Badge */}
                       {index === 0 && !exceeds && (
-                        <span className="absolute top-2 right-2 inline-flex items-center bg-[#33FF57]/10 text-[#33FF57] text-[9px] px-1.5 py-0.5 rounded-sm">
-                          <svg className="w-2 h-2 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <span className="absolute top-1 right-1 inline-flex items-center bg-[#33FF57]/10 text-[#33FF57] text-[8px] px-1 py-0.5 rounded-sm">
+                          <svg className="w-1.5 h-1.5 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
                           Recomendado
@@ -709,60 +711,52 @@ Me gustaría recibir más información sobre el proceso de solicitud.
 
                       {/* Excede capacidad Badge */}
                       {exceeds && (
-                        <span className="absolute top-2 right-2 inline-flex items-center bg-red-500/10 text-red-500 text-[9px] px-1.5 py-0.5 rounded-sm">
-                          <svg className="w-2 h-2 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <span className="absolute top-1 right-1 inline-flex items-center bg-red-500/10 text-red-500 text-[8px] px-1 py-0.5 rounded-sm">
+                          <svg className="w-1.5 h-1.5 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                           </svg>
-                          Excede capacidad de pago
+                          Excede capacidad
                         </span>
                       )}
 
                       <div className="flex flex-col">
                         {/* Period Header */}
                         <div className="mb-0.5">
-                          <h3 className="text-sm font-bold text-n-1">
+                          <h3 className="text-xs font-bold text-n-1 text-center">
                             {option.periods} {option.periodLabel}
                           </h3>
                         </div>
 
-                        {/* Details Grid */}
-                        <div className="border-t border-n-6 pt-1.5">
+                        {/* Details */}
+                        <div className="border-t border-n-6 pt-1">
                           {/* Monthly Payment - Main Focus */}
-                          <div className="flex items-baseline justify-center mb-1.5">
-                            <span className={`text-2xl font-bold ${exceeds ? 'text-red-500' : 'text-[#33FF57]'}`}>
+                          <div className="flex items-baseline justify-center mb-1">
+                            <span className={`text-xl font-bold ${exceeds ? 'text-red-500' : 'text-[#33FF57]'}`}>
                               {formatCurrency(option.paymentPerPeriod)}
                             </span>
-                            <span className="text-xs text-n-3 ml-1">
+                            <span className="text-[9px] text-n-3 ml-1">
                               /{getPeriodShortLabel(option.periodLabel)}
                             </span>
                           </div>
 
-                          {/* Total and Interest Rate in 2 columns */}
-                          <div className="grid grid-cols-2 gap-1.5">
-                            <div className="text-center">
-                              <span className="text-n-3 text-[10px] block mb-0.5">Total a pagar</span>
-                              <span className="text-n-1 font-medium text-[10px]">
-                                {formatCurrency(option.totalPayment)}
-                              </span>
-                            </div>
-                            <div className="text-center">
-                              <span className="text-n-3 text-[10px] block mb-0.5">Tasa de interés</span>
-                              <span className="text-n-1 text-[10px]">
-                                {option.interestRate}% anual
-                              </span>
-                            </div>
+                          {/* Total a pagar (más discreto) */}
+                          <div className="text-center">
+                            <span className="text-n-3 text-[8px] block mb-0.5">Total a pagar</span>
+                            <span className="text-n-1/80 text-[9px]">
+                              {formatCurrency(option.totalPayment)}
+                            </span>
                           </div>
 
                           {exceeds && (
-                            <div className="mt-2 text-[10px] text-red-500 text-center">
-                              La mensualidad excede el 25% de tus ingresos
+                            <div className="mt-1 text-[8px] text-red-500 text-center">
+                              Excede tu capacidad de pago
                             </div>
                           )}
                         </div>
 
                         {/* Selection Indicator */}
                         <div className={`
-                          h-0.5 w-full rounded-full mt-1.5
+                          h-0.5 w-full rounded-full mt-1
                           transition-all duration-300 ease-in-out
                           ${isSelected && !exceeds ? 'bg-[#33FF57]' : 'bg-n-6'}
                         `} />
