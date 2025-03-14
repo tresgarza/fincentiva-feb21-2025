@@ -124,6 +124,28 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     const amount = calculateFinancingAmount();
     console.log('Monto calculado para financiar:', amount);
     setFinancingAmount(amount);
+    
+    // Calcular y registrar montos de comisión para mejor seguimiento
+    const commissionRate = company.commission_rate / 100;
+    console.log('Tasa de comisión en decimal:', commissionRate);
+    
+    if (product.title === "Crédito Personal") {
+      // Para créditos personales
+      const commissionAmount = Math.round(product.price * commissionRate * 100) / 100;
+      const netAmount = product.price - commissionAmount;
+      console.log('Crédito Personal - Monto solicitado:', product.price);
+      console.log('Crédito Personal - Comisión calculada:', commissionAmount);
+      console.log('Crédito Personal - Monto neto a recibir:', netAmount);
+    } else {
+      // Para productos
+      const originalPrice = product.price;
+      const financingAmount = amount;
+      const commissionAmount = Math.round((financingAmount - originalPrice) * 100) / 100;
+      console.log('Producto - Precio original:', originalPrice);
+      console.log('Producto - Monto a financiar:', financingAmount);
+      console.log('Producto - Comisión calculada:', commissionAmount);
+      console.log('Producto - Porcentaje efectivo de comisión:', ((commissionAmount / originalPrice) * 100).toFixed(2) + '%');
+    }
 
     const calculatePayments = async () => {
       try {
@@ -253,6 +275,20 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       const isProductSimulation = product.title !== "Crédito Personal";
       console.log('Tipo de simulación:', isProductSimulation ? 'Producto' : 'Efectivo');
       
+      // Calcular montos de comisión
+      const commissionRate = company.commission_rate || 0;
+      let commissionAmount = 0;
+      let netAmount = 0;
+      
+      if (isProductSimulation) {
+        // Para productos, la comisión se calcula como la diferencia entre el monto financiado y el precio original
+        commissionAmount = financingAmount - parseFloat(product.price);
+      } else {
+        // Para crédito personal, la comisión se deduce del monto solicitado
+        commissionAmount = calculatePersonalLoanCommission();
+        netAmount = parseFloat(product.price) - commissionAmount;
+      }
+      
       // Datos comunes para ambos tipos de simulación
       const commonData = {
         user_first_name: userData.firstName || '',
@@ -264,7 +300,10 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         user_income: parseFloat(company.monthly_income),
         payment_frequency: company.payment_frequency,
         monthly_income: parseFloat(company.monthly_income),
-        recommended_plans: plans
+        recommended_plans: plans,
+        commission_rate: commissionRate,
+        commission_amount: commissionAmount,
+        is_preauthorized: true
       };
       
       console.log('Datos comunes a enviar:', commonData);
@@ -277,13 +316,15 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
           ...commonData,
           product_url: product.url || '',
           product_title: product.title,
-          product_price: parseFloat(product.price)
+          product_price: parseFloat(product.price),
+          financing_amount: financingAmount
         });
       } else {
         // Solicitud de efectivo
         result = await saveCashRequest({
           ...commonData,
-          requested_amount: parseFloat(product.price)
+          requested_amount: parseFloat(product.price),
+          net_amount: netAmount
         });
       }
       
@@ -421,8 +462,23 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         user_last_name: userData.lastName || '',
         user_phone: userData.phone || '',
         // Datos del producto
-        ...productData
+        ...productData,
+        // Información de comisión y financiamiento
+        commission_rate: company.commission_rate || 0,
+        is_preauthorized: true
       };
+      
+      // Calcular montos para comisión y financiamiento según el tipo de plan
+      if (simulationType === 'product') {
+        // Para productos, el monto financiado incluye la comisión
+        planData.financing_amount = financingAmount;
+        planData.commission_amount = financingAmount - parseFloat(product.price);
+      } else {
+        // Para crédito personal, la comisión se deduce del monto solicitado
+        const commissionAmount = calculatePersonalLoanCommission();
+        planData.commission_amount = commissionAmount;
+        planData.net_amount = parseFloat(product.price) - commissionAmount;
+      }
       
       console.log('Datos del plan a guardar:', planData);
       
