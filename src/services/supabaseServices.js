@@ -47,18 +47,45 @@ export const saveCashRequest = async (requestData) => {
  */
 export const saveSelectedPlan = async (planData) => {
   try {
+    console.log('======== DEBUG SAVE SELECTED PLAN ========');
+    console.log('Guardando plan seleccionado con datos:');
+    console.log('- Tipo de simulación:', planData.simulation_type);
+    console.log('- ID de simulación:', planData.simulation_id);
+    console.log('- Datos completos:', planData);
+    
+    if (!planData.simulation_id) {
+      console.error('Error: ID de simulación (simulation_id) es nulo o vacío');
+      return { success: false, error: 'ID de simulación no proporcionado' };
+    }
+    
+    if (!planData.simulation_type) {
+      console.error('Error: Tipo de simulación (simulation_type) es nulo o vacío');
+      return { success: false, error: 'Tipo de simulación no proporcionado' };
+    }
+    
     const { data, error } = await supabase
       .from('selected_plans')
       .insert([planData])
       .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error al insertar en selected_plans:', error);
+      throw error;
+    }
+    
+    console.log('Plan seleccionado guardado exitosamente:', data);
     
     // Actualizar la referencia en la tabla correspondiente
     if (planData.simulation_type === 'product') {
-      await updateProductSimulationWithPlan(planData.simulation_id, data[0].id);
+      console.log('Actualizando referencia en product_simulations');
+      const updateResult = await updateProductSimulationWithPlan(planData.simulation_id, data[0].id);
+      console.log('Resultado de actualizar product_simulations:', updateResult);
     } else if (planData.simulation_type === 'cash') {
-      await updateCashRequestWithPlan(planData.simulation_id, data[0].id);
+      console.log('Actualizando referencia en cash_requests');
+      const updateResult = await updateCashRequestWithPlan(planData.simulation_id, data[0].id);
+      console.log('Resultado de actualizar cash_requests:', updateResult);
+    } else {
+      console.warn('Tipo de simulación desconocido:', planData.simulation_type);
     }
     
     return { success: true, data };
@@ -97,12 +124,32 @@ const updateProductSimulationWithPlan = async (simulationId, planId) => {
  */
 const updateCashRequestWithPlan = async (requestId, planId) => {
   try {
+    console.log('======== DEBUG UPDATE CASH REQUEST ========');
+    console.log('Actualizando solicitud de efectivo con plan seleccionado:');
+    console.log('- ID de solicitud (simulation_id):', requestId);
+    console.log('- ID de plan seleccionado:', planId);
+    
+    if (!requestId) {
+      console.error('Error: ID de solicitud (requestId) es nulo o vacío');
+      return { success: false, error: 'ID de solicitud no proporcionado' };
+    }
+    
+    if (!planId) {
+      console.error('Error: ID de plan (planId) es nulo o vacío');
+      return { success: false, error: 'ID de plan no proporcionado' };
+    }
+    
     const { data, error } = await supabase
       .from('cash_requests')
       .update({ selected_plan_id: planId })
       .eq('id', requestId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error al actualizar cash_requests:', error);
+      throw error;
+    }
+    
+    console.log('Actualización de cash_requests exitosa:', data);
     return { success: true, data };
   } catch (error) {
     console.error('Error al actualizar la solicitud de efectivo:', error);

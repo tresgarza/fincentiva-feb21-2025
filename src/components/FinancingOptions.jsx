@@ -364,16 +364,30 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         });
       } else {
         // Solicitud de efectivo
+        console.log('======== DEBUG SIMULACIÓN CRÉDITO PERSONAL ========');
+        console.log('Datos para guardar solicitud de efectivo:');
+        console.log('- Monto solicitado:', parseFloat(product.price));
+        console.log('- Comisión:', commissionAmount);
+        console.log('- Monto neto:', netAmount);
+        
         result = await saveCashRequest({
           ...commonData,
           requested_amount: parseFloat(product.price),
           net_amount: netAmount
         });
+        
+        console.log('Resultado de guardar solicitud de efectivo:', result);
+        if (result.success && result.data && result.data.length > 0) {
+          console.log('ID de simulación de crédito personal guardada:', result.data[0].id);
+        } else {
+          console.error('Error al guardar simulación de crédito personal:', result.error);
+        }
       }
       
       console.log('Resultado de guardar simulación:', result);
       
       if (result.success && result.data && result.data.length > 0) {
+        console.log('Estableciendo simulationId:', result.data[0].id, 'para tipo:', isProductSimulation ? 'producto' : 'efectivo');
         setSimulationId(result.data[0].id);
         showNotification("¡Simulación guardada exitosamente!");
         return result.data[0].id;
@@ -428,6 +442,14 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
 
   const handlePlanSelection = async () => {
     if (!selectedPlan || !simulationId || isSavingPlan) return;
+    
+    // Log adicional para depuración de crédito personal
+    console.log('============== DEBUG SELECCIÓN DE PLAN ==============');
+    console.log('Iniciando selección de plan. Datos clave:');
+    console.log('- Plan seleccionado:', selectedPlan);
+    console.log('- ID de simulación:', simulationId);
+    console.log('- Tipo de producto:', product.title);
+    console.log('- Es crédito personal:', product.title === "Crédito Personal");
     
     setIsSavingPlan(true);
     setShowLoadingPopup(true);
@@ -531,12 +553,35 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         const commissionAmount = calculatePersonalLoanCommission();
         planData.commission_amount = commissionAmount;
         planData.net_amount = parseFloat(product.price) - commissionAmount;
+        
+        // Logs adicionales para crédito personal
+        console.log('PlanSelection (Crédito Personal) - Monto solicitado:', parseFloat(product.price));
+        console.log('PlanSelection (Crédito Personal) - Comisión:', commissionAmount);
+        console.log('PlanSelection (Crédito Personal) - Monto neto:', planData.net_amount);
+        console.log('PlanSelection (Crédito Personal) - ID Simulación:', simulationId);
       }
       
       console.log('Datos del plan a guardar:', planData);
       
+      // Debug detallado antes de guardar
+      console.log('Estado justo antes de llamar a saveSelectedPlan:');
+      console.log('- simulationId presente:', !!simulationId);
+      console.log('- simulation_type:', planData.simulation_type);
+      console.log('- Campos requeridos completos:', 
+        !!planData.simulation_id && 
+        !!planData.simulation_type && 
+        !!planData.company_id);
+      
       const result = await saveSelectedPlan(planData);
       console.log('Resultado de guardar plan seleccionado:', result);
+      
+      // Verificar resultado específicamente para crédito personal
+      if (simulationType === 'cash') {
+        console.log('Resultado específico para crédito personal:', result);
+        if (!result.success) {
+          console.error('Error específico para crédito personal:', result.error);
+        }
+      }
 
     // Construir el mensaje con la información del plan
       let message = `¡Hola! 👋
