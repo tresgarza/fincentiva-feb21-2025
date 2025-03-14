@@ -835,7 +835,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                             <svg className="w-2 h-2 mr-0.5" fill="currentColor" viewBox="0 0 16 16">
                               <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z"/>
                               <path d="M8 4a.5.5 0 01.5.5v3h3a.5.5 0 010 1h-3v3a.5.5 0 01-1 0v-3h-3a.5.5 0 010-1h3v-3A.5.5 0 018 4z"/>
-                            </svg>
+                          </svg>
                             Click para seleccionar
                         </span>
                         </div>
@@ -843,7 +843,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                       {isRecommended && !exceeds && (
                         <div className="absolute top-0 left-0 right-0 flex justify-center">
                           <span className="inline-block bg-[#33FF57] text-black text-[10px] font-medium px-2 py-0 rounded-b-sm transform -translate-y-0">
-                            Recomendado
+                          Recomendado
                         </span>
                         </div>
                       )}
