@@ -41,7 +41,7 @@ export const saveCashRequest = async (requestData) => {
 };
 
 /**
- * Guarda un plan seleccionado en Supabase
+ * Guarda un plan seleccionado en Supabase y actualiza la referencia en la tabla correspondiente
  * @param {Object} planData - Datos del plan seleccionado
  * @returns {Promise<Object>} - Objeto con el resultado de la operación
  */
@@ -53,6 +53,7 @@ export const saveSelectedPlan = async (planData) => {
     console.log('- ID de simulación:', planData.simulation_id);
     console.log('- Datos completos:', planData);
     
+    // Validaciones previas
     if (!planData.simulation_id) {
       console.error('Error: ID de simulación (simulation_id) es nulo o vacío');
       return { success: false, error: 'ID de simulación no proporcionado' };
@@ -63,6 +64,7 @@ export const saveSelectedPlan = async (planData) => {
       return { success: false, error: 'Tipo de simulación no proporcionado' };
     }
     
+    // Insertar el plan seleccionado
     const { data, error } = await supabase
       .from('selected_plans')
       .insert([planData])
@@ -73,22 +75,54 @@ export const saveSelectedPlan = async (planData) => {
       throw error;
     }
     
+    if (!data || data.length === 0) {
+      console.error('No se devolvieron datos al insertar el plan seleccionado');
+      throw new Error('No se obtuvieron datos al guardar el plan');
+    }
+    
     console.log('Plan seleccionado guardado exitosamente:', data);
+    
+    let updateResult = null;
     
     // Actualizar la referencia en la tabla correspondiente
     if (planData.simulation_type === 'product') {
       console.log('Actualizando referencia en product_simulations');
-      const updateResult = await updateProductSimulationWithPlan(planData.simulation_id, data[0].id);
+      updateResult = await updateProductSimulationWithPlan(planData.simulation_id, data[0].id);
       console.log('Resultado de actualizar product_simulations:', updateResult);
+      
+      if (!updateResult.success) {
+        console.error('Error al actualizar product_simulations:', updateResult.error);
+        return { 
+          success: true, 
+          data,
+          warning: 'Plan guardado pero no se pudo actualizar la referencia en product_simulations',
+          updateError: updateResult.error
+        };
+      }
     } else if (planData.simulation_type === 'cash') {
       console.log('Actualizando referencia en cash_requests');
-      const updateResult = await updateCashRequestWithPlan(planData.simulation_id, data[0].id);
+      updateResult = await updateCashRequestWithPlan(planData.simulation_id, data[0].id);
       console.log('Resultado de actualizar cash_requests:', updateResult);
+      
+      if (!updateResult.success) {
+        console.error('Error al actualizar cash_requests:', updateResult.error);
+        return { 
+          success: true, 
+          data,
+          warning: 'Plan guardado pero no se pudo actualizar la referencia en cash_requests',
+          updateError: updateResult.error
+        };
+      }
     } else {
       console.warn('Tipo de simulación desconocido:', planData.simulation_type);
+      return { 
+        success: true, 
+        data,
+        warning: `Tipo de simulación desconocido: ${planData.simulation_type}, no se actualizó ninguna referencia`
+      };
     }
     
-    return { success: true, data };
+    return { success: true, data, updateResult };
   } catch (error) {
     console.error('Error al guardar el plan seleccionado:', error);
     return { success: false, error: error.message };

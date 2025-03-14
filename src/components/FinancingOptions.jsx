@@ -370,11 +370,13 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         console.log('- Comisión:', commissionAmount);
         console.log('- Monto neto:', netAmount);
         
-        result = await saveCashRequest({
+        const cashRequestData = {
           ...commonData,
           requested_amount: parseFloat(product.price),
           net_amount: netAmount
-        });
+        };
+        
+        result = await saveCashRequest(cashRequestData);
         
         console.log('Resultado de guardar solicitud de efectivo:', result);
         if (result.success && result.data && result.data.length > 0) {
@@ -388,9 +390,28 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       
       if (result.success && result.data && result.data.length > 0) {
         console.log('Estableciendo simulationId:', result.data[0].id, 'para tipo:', isProductSimulation ? 'producto' : 'efectivo');
-        setSimulationId(result.data[0].id);
+        
+        // Asignar el ID de simulación generado
+        const newSimulationId = result.data[0].id;
+        setSimulationId(newSimulationId);
+        
+        // Para crédito personal, guardar también en localStorage como respaldo
+        if (!isProductSimulation) {
+          try {
+            const backupData = {
+              simulationId: newSimulationId,
+              timestamp: new Date().toISOString(),
+              type: 'cash'
+            };
+            localStorage.setItem('lastCashSimulationId', JSON.stringify(backupData));
+            console.log('ID de simulación de crédito personal guardado en localStorage:', backupData);
+          } catch (err) {
+            console.warn('No se pudo guardar ID de simulación en localStorage:', err);
+          }
+        }
+        
         showNotification("¡Simulación guardada exitosamente!");
-        return result.data[0].id;
+        return newSimulationId;
       } else {
         console.error('Error al guardar simulación:', result.error);
         return null;
@@ -441,15 +462,50 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
   };
 
   const handlePlanSelection = async () => {
-    if (!selectedPlan || !simulationId || isSavingPlan) return;
+    if (!selectedPlan || isSavingPlan) return;
     
     // Log adicional para depuración de crédito personal
     console.log('============== DEBUG SELECCIÓN DE PLAN ==============');
     console.log('Iniciando selección de plan. Datos clave:');
     console.log('- Plan seleccionado:', selectedPlan);
-    console.log('- ID de simulación:', simulationId);
+    console.log('- ID de simulación actual:', simulationId);
     console.log('- Tipo de producto:', product.title);
     console.log('- Es crédito personal:', product.title === "Crédito Personal");
+    
+    // Si no hay un ID de simulación pero es crédito personal, intentar recuperarlo de localStorage
+    let currentSimulationId = simulationId;
+    const isPersonalLoan = product.title === "Crédito Personal";
+    
+    if (!currentSimulationId && isPersonalLoan) {
+      try {
+        const storedData = JSON.parse(localStorage.getItem('lastCashSimulationId') || '{}');
+        if (storedData.simulationId) {
+          console.log('Recuperando ID de simulación de crédito personal desde localStorage:', storedData);
+          currentSimulationId = storedData.simulationId;
+        }
+      } catch (err) {
+        console.warn('Error al intentar recuperar simulationId de localStorage:', err);
+      }
+    }
+    
+    // Verificar nuevamente si tenemos un ID de simulación
+    if (!currentSimulationId) {
+      console.error('Error: No hay ID de simulación disponible. Guardando nueva simulación...');
+      
+      // Intentar guardar la simulación nuevamente y obtener el ID
+      if (paymentOptions && paymentOptions.length > 0) {
+        currentSimulationId = await saveSimulation(paymentOptions);
+        console.log('Nueva simulación guardada con ID:', currentSimulationId);
+      }
+      
+      // Si aún no hay ID, mostrar error y salir
+      if (!currentSimulationId) {
+        showNotification("Error: No se pudo guardar la simulación", "error");
+        return;
+      }
+    }
+    
+    console.log('Usando ID de simulación para guardar plan:', currentSimulationId);
     
     setIsSavingPlan(true);
     setShowLoadingPopup(true);
@@ -468,7 +524,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       }, 1000);
 
       // Determine simulation type
-      const simulationType = product.title === "Crédito Personal" ? 'cash' : 'product';
+      const simulationType = isPersonalLoan ? 'cash' : 'product';
       console.log('Tipo de simulación en handlePlanSelection:', simulationType);
       
       // Preparar datos adicionales del producto
@@ -511,7 +567,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       
       // Save selected plan to Supabase
       const planData = {
-        simulation_id: simulationId,
+        simulation_id: currentSimulationId,
         simulation_type: simulationType,
         periods: selectedPlan.periods,
         period_label: selectedPlan.periodLabel,
@@ -558,61 +614,73 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         console.log('PlanSelection (Crédito Personal) - Monto solicitado:', parseFloat(product.price));
         console.log('PlanSelection (Crédito Personal) - Comisión:', commissionAmount);
         console.log('PlanSelection (Crédito Personal) - Monto neto:', planData.net_amount);
-        console.log('PlanSelection (Crédito Personal) - ID Simulación:', simulationId);
+        console.log('PlanSelection (Crédito Personal) - ID Simulación:', currentSimulationId);
       }
       
       console.log('Datos del plan a guardar:', planData);
       
       // Debug detallado antes de guardar
       console.log('Estado justo antes de llamar a saveSelectedPlan:');
-      console.log('- simulationId presente:', !!simulationId);
+      console.log('- simulationId presente:', !!currentSimulationId);
       console.log('- simulation_type:', planData.simulation_type);
       console.log('- Campos requeridos completos:', 
         !!planData.simulation_id && 
         !!planData.simulation_type && 
         !!planData.company_id);
       
-      const result = await saveSelectedPlan(planData);
-      console.log('Resultado de guardar plan seleccionado:', result);
-      
-      // Verificar resultado específicamente para crédito personal
-      if (simulationType === 'cash') {
-        console.log('Resultado específico para crédito personal:', result);
-        if (!result.success) {
-          console.error('Error específico para crédito personal:', result.error);
-        }
+      // Validar que todos los campos requeridos estén presentes
+      if (!planData.simulation_id) {
+        const errorMsg = "Error: No se pudo guardar el plan porque falta el ID de simulación";
+        console.error(errorMsg);
+        showNotification(errorMsg, "error");
+        setIsSavingPlan(false);
+        setShowLoadingPopup(false);
+        return;
       }
+      
+      try {
+        const result = await saveSelectedPlan(planData);
+        console.log('Resultado de guardar plan seleccionado:', result);
+        
+        // Verificar resultado específicamente para crédito personal
+        if (simulationType === 'cash') {
+          console.log('Resultado específico para crédito personal:', result);
+          if (!result.success) {
+            console.error('Error específico para crédito personal:', result.error);
+            throw new Error(`Error al guardar plan para crédito personal: ${result.error}`);
+          }
+        }
 
-    // Construir el mensaje con la información del plan
-      let message = `¡Hola! 👋
+        // Construir el mensaje con la información del plan
+        let message = `¡Hola! 👋
 
 Me interesa solicitar un crédito con las siguientes características:
 
 *Datos del Producto:*
 📱 Producto: ${product.title}`;
 
-      // Para productos, mostrar tanto el precio original como el monto a financiar con comisión
-      if (product.title !== "Crédito Personal") {
-        message += `
-💰 Precio original: ${formatCurrency(product.price)}`;
-        
-        if (company.commission_rate > 0) {
+        // Para productos, mostrar tanto el precio original como el monto a financiar con comisión
+        if (product.title !== "Crédito Personal") {
           message += `
+💰 Precio original: ${formatCurrency(product.price)}`;
+          
+          if (company.commission_rate > 0) {
+            message += `
 💵 Monto a financiar (incluye comisión ${company.commission_rate}%): ${formatCurrency(financingAmount)}`;
-        }
-      } else {
-        // Para crédito personal solo mostrar el monto solicitado
-        message += `
+          }
+        } else {
+          // Para crédito personal solo mostrar el monto solicitado
+          message += `
 💰 Monto solicitado: ${formatCurrency(product.price)}`;
-      }
+        }
 
-      // Añadir enlace del producto si existe
-      if (product.url && product.title !== "Crédito Personal") {
-        message += `
+        // Añadir enlace del producto si existe
+        if (product.url && product.title !== "Crédito Personal") {
+          message += `
 🔗 Enlace: ${product.url}`;
-      }
+        }
 
-      message += `
+        message += `
 
 *Plan de Financiamiento Seleccionado:*
 🏢 Empresa: ${company.name}
@@ -630,97 +698,101 @@ Me gustaría recibir más información sobre el proceso de solicitud.
 ⚠️ *ACLARACIÓN IMPORTANTE*: Entiendo que la aprobación mostrada es pre-autorizada. Acepto que esto es una simulación y que el crédito final puede variar, sujeto a verificación por parte de Financiera Incentiva y el área administrativa de la empresa.
 ¡Gracias!`;
 
-      // Esperar a que la animación termine (mínimo 3 segundos)
-      await new Promise(resolve => setTimeout(resolve, 3000));
+        // Esperar a que la animación termine (mínimo 3 segundos)
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
-    // Codificar el mensaje para URL
-    const encodedMessage = encodeURIComponent(message);
-    
-      // Obtener el número de teléfono del asesor directamente de la empresa
-      let phoneNumber = '5218116364522'; // Número por defecto - Diego Garza
-      
-      // Verificamos y logueamos la información del teléfono
-      console.log('Verificando teléfono del asesor para empresa:', company.name);
-      console.log('Teléfono guardado en la empresa:', company.advisor_phone);
-      
-      // Usar directamente el teléfono de la empresa si está disponible
-      if (company.advisor_phone) {
-        // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
-        const cleanPhone = company.advisor_phone.replace(/\D/g, '');
+        // Codificar el mensaje para URL
+        const encodedMessage = encodeURIComponent(message);
         
-        // Asegurarse de que tiene el formato correcto para WhatsApp
-        if (cleanPhone.startsWith('52')) {
-          phoneNumber = cleanPhone;
-        } else if (cleanPhone.length === 10) {
-          phoneNumber = `52${cleanPhone}`;
+        // Obtener el número de teléfono del asesor directamente de la empresa
+        let phoneNumber = '5218116364522'; // Número por defecto - Diego Garza
+        
+        // Verificamos y logueamos la información del teléfono
+        console.log('Verificando teléfono del asesor para empresa:', company.name);
+        console.log('Teléfono guardado en la empresa:', company.advisor_phone);
+        
+        // Usar directamente el teléfono de la empresa si está disponible
+        if (company.advisor_phone) {
+          // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
+          const cleanPhone = company.advisor_phone.replace(/\D/g, '');
+          
+          // Asegurarse de que tiene el formato correcto para WhatsApp
+          if (cleanPhone.startsWith('52')) {
+            phoneNumber = cleanPhone;
+          } else if (cleanPhone.length === 10) {
+            phoneNumber = `52${cleanPhone}`;
+          } else {
+            phoneNumber = `52${cleanPhone}`;
+          }
+          
+          console.log('Usando número de teléfono del advisor asignado a la empresa:', phoneNumber);
+        } else if (advisorData && advisorData.phone) {
+          // Como respaldo, usar el teléfono del advisor obtenido de la consulta
+          const cleanPhone = advisorData.phone.replace(/\D/g, '');
+          
+          if (cleanPhone.startsWith('52')) {
+            phoneNumber = cleanPhone;
+          } else if (cleanPhone.length === 10) {
+            phoneNumber = `52${cleanPhone}`;
+          } else {
+            phoneNumber = `52${cleanPhone}`;
+          }
+          
+          console.log('Usando número de teléfono del advisor obtenido por consulta:', phoneNumber);
         } else {
-          phoneNumber = `52${cleanPhone}`;
-        }
-        
-        console.log('Usando número de teléfono del advisor asignado a la empresa:', phoneNumber);
-      } else if (advisorData && advisorData.phone) {
-        // Como respaldo, usar el teléfono del advisor obtenido de la consulta
-        const cleanPhone = advisorData.phone.replace(/\D/g, '');
-        
-        if (cleanPhone.startsWith('52')) {
-          phoneNumber = cleanPhone;
-        } else if (cleanPhone.length === 10) {
-          phoneNumber = `52${cleanPhone}`;
-        } else {
-          phoneNumber = `52${cleanPhone}`;
-        }
-        
-        console.log('Usando número de teléfono del advisor obtenido por consulta:', phoneNumber);
-      } else {
-        console.warn('No se encontró teléfono del asesor, usando número por defecto o específico');
-        
-        // Mapeo de códigos de empresa a números de teléfono como último respaldo
-        const companyCodeToPhoneMap = {
-          'CAD0227': '5218113800021', // Alexis Medina - CADTONER
-          'CAR5799': '5218211110095', // Angelica Elizondo - Taquería "Tía Carmen"
-          'TRA5976': '5218211110095', // Angelica Elizondo - Transportes
-          'PRE2030': '5218211110095', // Angelica Elizondo - Presidencia
-          'RAQ3329': '5218211110095', // Angelica Elizondo - Doña Raquel
-          'CAR9424': '5218117919076', // Edgar Benavides - Cartotec
-          'GSL9775': '5218116364522',  // Diego Garza - Industrias GSL
-          // Agregar otros mapeos específicos según sea necesario
-          'HOW1234': '5218120007707'   // Sofía Esparza - Grupo Hower
-        };
-        
-        // Buscar por código de empresa como último respaldo
-        if (company.employee_code && companyCodeToPhoneMap[company.employee_code]) {
-          phoneNumber = companyCodeToPhoneMap[company.employee_code];
-          console.log('Usando número específico para código de empresa:', company.employee_code, phoneNumber);
-        } else {
-          // Si todo lo demás falla, intentamos buscar coincidencias parciales en el nombre de la empresa
-          const companyNameKeywords = {
-            'Hower': '5218120007707',   // Sofía Esparza
-            'Sofia': '5218120007707',   // Sofía Esparza
-            'Carmen': '5218211110095',  // Angelica Elizondo
-            'CADTONER': '5218113800021' // Alexis Medina
+          console.warn('No se encontró teléfono del asesor, usando número por defecto o específico');
+          
+          // Mapeo de códigos de empresa a números de teléfono como último respaldo
+          const companyCodeToPhoneMap = {
+            'CAD0227': '5218113800021', // Alexis Medina - CADTONER
+            'CAR5799': '5218211110095', // Angelica Elizondo - Taquería "Tía Carmen"
+            'TRA5976': '5218211110095', // Angelica Elizondo - Transportes
+            'PRE2030': '5218211110095', // Angelica Elizondo - Presidencia
+            'RAQ3329': '5218211110095', // Angelica Elizondo - Doña Raquel
+            'CAR9424': '5218117919076', // Edgar Benavides - Cartotec
+            'GSL9775': '5218116364522',  // Diego Garza - Industrias GSL
+            // Agregar otros mapeos específicos según sea necesario
+            'HOW1234': '5218120007707'   // Sofía Esparza - Grupo Hower
           };
           
-          for (const keyword in companyNameKeywords) {
-            if (company.name && company.name.includes(keyword)) {
-              phoneNumber = companyNameKeywords[keyword];
-              console.log('Coincidencia por palabra clave en nombre:', keyword, phoneNumber);
-              break;
+          // Buscar por código de empresa como último respaldo
+          if (company.employee_code && companyCodeToPhoneMap[company.employee_code]) {
+            phoneNumber = companyCodeToPhoneMap[company.employee_code];
+            console.log('Usando número específico para código de empresa:', company.employee_code, phoneNumber);
+          } else {
+            // Si todo lo demás falla, intentamos buscar coincidencias parciales en el nombre de la empresa
+            const companyNameKeywords = {
+              'Hower': '5218120007707',   // Sofía Esparza
+              'Sofia': '5218120007707',   // Sofía Esparza
+              'Carmen': '5218211110095',  // Angelica Elizondo
+              'CADTONER': '5218113800021' // Alexis Medina
+            };
+            
+            for (const keyword in companyNameKeywords) {
+              if (company.name && company.name.includes(keyword)) {
+                phoneNumber = companyNameKeywords[keyword];
+                console.log('Coincidencia por palabra clave en nombre:', keyword, phoneNumber);
+                break;
+              }
             }
           }
         }
+        
+        // Redirigir a WhatsApp con el número del advisor
+        console.log('Abriendo WhatsApp con el número:', phoneNumber);
+        window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
+        
+        showNotification("¡Plan seleccionado correctamente!");
+      } catch (error) {
+        console.error('Error al guardar el plan seleccionado:', error);
+        showNotification("Hubo un error al guardar el plan seleccionado", "error");
+      } finally {
+        setIsSavingPlan(false);
+        setShowLoadingPopup(false);
       }
-      
-      // Redirigir a WhatsApp con el número del advisor
-      console.log('Abriendo WhatsApp con el número:', phoneNumber);
-      window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
-      
-      showNotification("¡Plan seleccionado correctamente!");
     } catch (error) {
       console.error('Error al guardar el plan seleccionado:', error);
       showNotification("Hubo un error al guardar el plan seleccionado", "error");
-    } finally {
-      setIsSavingPlan(false);
-      setShowLoadingPopup(false);
     }
   };
 
