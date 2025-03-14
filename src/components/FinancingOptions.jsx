@@ -112,7 +112,17 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
 
   useEffect(() => {
     // Calcular el monto a financiar cuando cambie el producto o la empresa
+    console.log('Datos de la empresa recibidos en FinancingOptions:', company);
+    console.log('Tasa de comisión recibida:', company.commission_rate);
+    
+    // Asignar una tasa de comisión por defecto si no existe
+    if (company.commission_rate === undefined || company.commission_rate === null) {
+      console.log('Comisión no definida, asignando valor por defecto de 5%');
+      company.commission_rate = 5;
+    }
+    
     const amount = calculateFinancingAmount();
+    console.log('Monto calculado para financiar:', amount);
     setFinancingAmount(amount);
 
     const calculatePayments = async () => {
@@ -672,13 +682,21 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                     
                     {/* Información de comisión para crédito personal */}
                     {company.commission_rate > 0 && (
-                      <div className="text-n-3 mb-4 text-sm">
-                        <span className="text-red-400">
-                          Comisión: {formatCurrency(calculatePersonalLoanCommission())}
-                        </span>
-                        <span> ({company.commission_rate}%)</span>
-                        <div className="text-n-3">
-                          Recibirás: {formatCurrency(product.price - calculatePersonalLoanCommission())}
+                      <div className="bg-[#1A1F26] border border-[#2D3643] rounded-md p-3 mb-4 text-sm w-full">
+                        <h3 className="text-n-1 font-semibold mb-1 text-center">Detalles del crédito</h3>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex justify-between items-center">
+                            <span className="text-n-3">Monto solicitado:</span>
+                            <span className="text-white font-medium">{formatCurrency(product.price)}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-red-400">Comisión ({company.commission_rate}%):</span>
+                            <span className="text-red-400 font-medium">- {formatCurrency(calculatePersonalLoanCommission())}</span>
+                          </div>
+                          <div className="flex justify-between items-center border-t border-[#2D3643] mt-1 pt-1">
+                            <span className="text-n-1 font-medium">Recibirás:</span>
+                            <span className="text-[#33FF57] font-bold">{formatCurrency(product.price - calculatePersonalLoanCommission())}</span>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -727,30 +745,29 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                       <h2 className="text-lg font-bold text-n-1 mb-1.5">{product.title}</h2>
                       
                       {/* Mostrar precio original y monto a financiar */}
-                      <div className="flex flex-col mb-2">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-n-3 text-sm">Precio:</span>
-                          <span className="text-n-1">
-                          {formatCurrency(product.price)}
-                        </span>
+                      <div className="bg-[#1A1F26] border border-[#2D3643] rounded-md p-3 mb-3 w-full">
+                        <h3 className="text-n-1 font-semibold mb-1 text-center text-sm">Detalles del financiamiento</h3>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex justify-between items-center">
+                            <span className="text-n-3 text-sm">Precio del producto:</span>
+                            <span className="text-white font-medium text-sm">{formatCurrency(product.price)}</span>
+                          </div>
+                          
+                          {company.commission_rate > 0 && (
+                            <>
+                              <div className="flex justify-between items-center">
+                                <span className="text-n-3 text-sm">Comisión ({company.commission_rate}%):</span>
+                                <span className="text-yellow-400 font-medium text-sm">
+                                  {formatCurrency(financingAmount - product.price)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center border-t border-[#2D3643] mt-1 pt-1">
+                                <span className="text-n-1 font-medium text-sm">Monto a financiar:</span>
+                                <span className="text-[#33FF57] font-bold text-sm">{formatCurrency(financingAmount)}</span>
+                              </div>
+                            </>
+                          )}
                         </div>
-                        
-                        {company.commission_rate > 0 && (
-                          <>
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-n-3 text-sm">Comisión:</span>
-                              <span className="text-n-3 text-sm">
-                                {company.commission_rate}%
-                              </span>
-                            </div>
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-n-3 text-sm">Monto a financiar:</span>
-                              <span className="text-xl font-bold text-[#33FF57]">
-                                {formatCurrency(financingAmount)}
-                              </span>
-                            </div>
-                          </>
-                        )}
                       </div>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-2">
@@ -835,7 +852,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                             <svg className="w-2 h-2 mr-0.5" fill="currentColor" viewBox="0 0 16 16">
                               <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z"/>
                               <path d="M8 4a.5.5 0 01.5.5v3h3a.5.5 0 010 1h-3v3a.5.5 0 01-1 0v-3h-3a.5.5 0 010-1h3v-3A.5.5 0 018 4z"/>
-                          </svg>
+                            </svg>
                             Click para seleccionar
                         </span>
                         </div>

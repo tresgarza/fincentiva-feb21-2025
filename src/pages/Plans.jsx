@@ -44,7 +44,12 @@ const Plans = () => {
       <div className="container mx-auto px-4 pt-[100px]">
         <FinancingOptions
           product={productData}
-          company={{...companyData, monthly_income: monthlyIncome}}
+          company={{
+            ...companyData, 
+            monthly_income: monthlyIncome,
+            // Asegurar que existe una tasa de comisión por defecto
+            commission_rate: companyData.commission_rate || 5 
+          }}
           onSelectPlan={handlePlanSelection}
           onBack={handleBack}
           onLoaded={() => {}}
