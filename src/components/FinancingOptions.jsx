@@ -293,6 +293,24 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       const commissionRate = company.commission_rate || 0;
       let commissionAmount = 0;
       let netAmount = 0;
+      let financing_amount = 0;
+      
+      // Datos comunes para ambos tipos de simulación - MOVER ANTES de cualquier referencia
+      const commonData = {
+        user_first_name: userData.firstName || '',
+        user_last_name: userData.lastName || '',
+        user_phone: userData.phone || '',
+        company_id: company.id,
+        company_name: company.name,
+        company_code: companyCode,
+        user_income: parseFloat(company.monthly_income),
+        payment_frequency: company.payment_frequency,
+        monthly_income: parseFloat(company.monthly_income),
+        recommended_plans: plans,
+        commission_rate: commissionRate,
+        commission_amount: commissionAmount,
+        is_preauthorized: true
+      };
       
       if (isProductSimulation) {
         // Para productos, la comisión se calcula como la diferencia entre el monto financiado y el precio original
@@ -314,8 +332,10 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
           setFinancingAmount(finalFinancingAmount);
         }
         
-        // Guardar el valor calculado
+        // Asignar valores al objeto commonData
+        commonData.commission_amount = commissionAmount;
         commonData.financing_amount = finalFinancingAmount;
+        financing_amount = finalFinancingAmount;
         
         console.log('Precio del producto:', parseFloat(product.price));
         console.log('Monto de financiamiento a guardar:', finalFinancingAmount);
@@ -324,24 +344,10 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         // Para crédito personal, la comisión se deduce del monto solicitado
         commissionAmount = calculatePersonalLoanCommission();
         netAmount = parseFloat(product.price) - commissionAmount;
+        
+        // Actualizar el commonData con los valores correctos para crédito personal
+        commonData.commission_amount = commissionAmount;
       }
-      
-      // Datos comunes para ambos tipos de simulación
-      const commonData = {
-        user_first_name: userData.firstName || '',
-        user_last_name: userData.lastName || '',
-        user_phone: userData.phone || '',
-        company_id: company.id,
-        company_name: company.name,
-        company_code: companyCode,
-        user_income: parseFloat(company.monthly_income),
-        payment_frequency: company.payment_frequency,
-        monthly_income: parseFloat(company.monthly_income),
-        recommended_plans: plans,
-        commission_rate: commissionRate,
-        commission_amount: commissionAmount,
-        is_preauthorized: true
-      };
       
       console.log('Datos comunes a enviar:', commonData);
       
@@ -354,6 +360,7 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
           product_url: product.url || '',
           product_title: product.title,
           product_price: parseFloat(product.price),
+          financing_amount: financing_amount
         });
       } else {
         // Solicitud de efectivo
