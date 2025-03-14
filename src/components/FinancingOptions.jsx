@@ -29,9 +29,23 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       return product.price;
     } else {
       // Para productos: precio / (1 - comisión)
-      return commissionRate > 0 
+      // Añadir verificación para evitar división por cero o valores negativos
+      if (commissionRate >= 1) {
+        console.error('Tasa de comisión inválida (≥100%):', company.commission_rate);
+        return product.price * 1.05; // Valor por defecto razonable (5% de comisión)
+      }
+      
+      const calculated = commissionRate > 0 
         ? Math.round(product.price / (1 - commissionRate) * 100) / 100
         : product.price;
+      
+      // Verificación adicional para asegurar que el resultado es válido
+      if (isNaN(calculated) || calculated <= 0) {
+        console.error('Cálculo de monto inválido:', calculated, 'usando valor por defecto');
+        return product.price * 1.05; // Valor por defecto razonable (5% de comisión)
+      }
+      
+      return calculated;
     }
   };
 
@@ -120,9 +134,6 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       console.log('Comisión no definida, asignando valor por defecto de 5%');
       company.commission_rate = 5;
     }
-    
-    // Ejecutar la función de depuración para verificar los cálculos
-    debugFinancingCalculations();
     
     const amount = calculateFinancingAmount();
     console.log('Monto calculado para financiar:', amount);
@@ -278,47 +289,41 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       const isProductSimulation = product.title !== "Crédito Personal";
       console.log('Tipo de simulación:', isProductSimulation ? 'Producto' : 'Efectivo');
       
-      // Calcular montos de comisión y financiamiento directamente para evitar problemas de timing con estados
+      // Calcular montos de comisión
       const commissionRate = company.commission_rate || 0;
       let commissionAmount = 0;
       let netAmount = 0;
-      let financingAmountValue = 0;
       
       if (isProductSimulation) {
-        // Para productos, calcular directamente el monto financiado y la comisión
-        const commissionRateDecimal = commissionRate / 100;
-        const productPrice = parseFloat(product.price);
+        // Para productos, la comisión se calcula como la diferencia entre el monto financiado y el precio original
+        // Asegurarse de que financingAmount tiene un valor y es mayor que 0
+        const calculatedFinancingAmount = financingAmount > 0 ? financingAmount : calculateFinancingAmount();
         
-        // Calcular monto a financiar: precio / (1 - comisión)
-        financingAmountValue = commissionRateDecimal > 0 
-          ? Math.round(productPrice / (1 - commissionRateDecimal) * 100) / 100
-          : productPrice;
-          
-        // La comisión es la diferencia entre el monto financiado y el precio original
-        commissionAmount = Math.round((financingAmountValue - productPrice) * 100) / 100;
+        // Verificación adicional para depuración
+        console.log('Valor actual de financingAmount:', financingAmount);
+        console.log('Valor calculado de financingAmount:', calculatedFinancingAmount);
         
-        console.log('Producto - Precio:', productPrice);
-        console.log('Producto - Tasa de comisión:', commissionRate + '%', 'decimal:', commissionRateDecimal);
-        console.log('Producto - Monto financiado calculado:', financingAmountValue);
-        console.log('Producto - Comisión calculada:', commissionAmount);
+        // Usar el valor calculado si financingAmount es 0
+        const finalFinancingAmount = calculatedFinancingAmount;
+        
+        // Calcular comisión correctamente
+        commissionAmount = Math.max(0, finalFinancingAmount - parseFloat(product.price));
+        
+        // Actualizar financingAmount solo si es necesario
+        if (financingAmount <= 0) {
+          setFinancingAmount(finalFinancingAmount);
+        }
+        
+        // Guardar el valor calculado
+        commonData.financing_amount = finalFinancingAmount;
+        
+        console.log('Precio del producto:', parseFloat(product.price));
+        console.log('Monto de financiamiento a guardar:', finalFinancingAmount);
+        console.log('Monto de comisión a guardar:', commissionAmount);
       } else {
         // Para crédito personal, la comisión se deduce del monto solicitado
-        const productPrice = parseFloat(product.price);
-        const commissionRateDecimal = commissionRate / 100;
-        
-        // El monto a financiar es el monto solicitado
-        financingAmountValue = productPrice;
-        
-        // La comisión se calcula directamente: monto * tasa
-        commissionAmount = Math.round(productPrice * commissionRateDecimal * 100) / 100;
-        
-        // El monto neto es el monto solicitado menos la comisión
-        netAmount = productPrice - commissionAmount;
-        
-        console.log('Crédito Personal - Monto solicitado:', productPrice);
-        console.log('Crédito Personal - Tasa de comisión:', commissionRate + '%');
-        console.log('Crédito Personal - Comisión calculada:', commissionAmount);
-        console.log('Crédito Personal - Monto neto a recibir:', netAmount);
+        commissionAmount = calculatePersonalLoanCommission();
+        netAmount = parseFloat(product.price) - commissionAmount;
       }
       
       // Datos comunes para ambos tipos de simulación
@@ -349,7 +354,6 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
           product_url: product.url || '',
           product_title: product.title,
           product_price: parseFloat(product.price),
-          financing_amount: financingAmountValue
         });
       } else {
         // Solicitud de efectivo
@@ -502,41 +506,24 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       
       // Calcular montos para comisión y financiamiento según el tipo de plan
       if (simulationType === 'product') {
-        // Para productos, calcular directamente el monto financiado y la comisión
-        const commissionRateDecimal = (company.commission_rate || 0) / 100;
-        const productPrice = parseFloat(product.price);
+        // Para productos, el monto financiado incluye la comisión
+        // Asegurarse de que financingAmount tiene un valor y es mayor que 0
+        const calculatedFinancingAmount = financingAmount > 0 ? financingAmount : calculateFinancingAmount();
         
-        // Calcular monto a financiar: precio / (1 - comisión)
-        const financingAmountValue = commissionRateDecimal > 0 
-          ? Math.round(productPrice / (1 - commissionRateDecimal) * 100) / 100
-          : productPrice;
-          
-        // La comisión es la diferencia entre el monto financiado y el precio original
-        const commissionAmountValue = Math.round((financingAmountValue - productPrice) * 100) / 100;
+        // Usar el valor calculado
+        planData.financing_amount = calculatedFinancingAmount;
         
-        planData.financing_amount = financingAmountValue;
-        planData.commission_amount = commissionAmountValue;
+        // Calcular comisión correctamente
+        planData.commission_amount = Math.max(0, calculatedFinancingAmount - parseFloat(product.price));
         
-        console.log('Plan seleccionado (Producto) - Precio:', productPrice);
-        console.log('Plan seleccionado (Producto) - Monto financiado calculado:', financingAmountValue);
-        console.log('Plan seleccionado (Producto) - Comisión calculada:', commissionAmountValue);
+        console.log('PlanSelection - Precio del producto:', parseFloat(product.price));
+        console.log('PlanSelection - Monto de financiamiento a guardar:', calculatedFinancingAmount);
+        console.log('PlanSelection - Monto de comisión a guardar:', planData.commission_amount);
       } else {
-        // Para crédito personal, calcular directamente la comisión y el monto neto
-        const productPrice = parseFloat(product.price);
-        const commissionRateDecimal = (company.commission_rate || 0) / 100;
-        
-        // La comisión se calcula directamente: monto * tasa
-        const commissionAmountValue = Math.round(productPrice * commissionRateDecimal * 100) / 100;
-        
-        // El monto neto es el monto solicitado menos la comisión
-        const netAmountValue = productPrice - commissionAmountValue;
-        
-        planData.commission_amount = commissionAmountValue;
-        planData.net_amount = netAmountValue;
-        
-        console.log('Plan seleccionado (Crédito) - Monto solicitado:', productPrice);
-        console.log('Plan seleccionado (Crédito) - Comisión calculada:', commissionAmountValue);
-        console.log('Plan seleccionado (Crédito) - Monto neto a recibir:', netAmountValue);
+        // Para crédito personal, la comisión se deduce del monto solicitado
+        const commissionAmount = calculatePersonalLoanCommission();
+        planData.commission_amount = commissionAmount;
+        planData.net_amount = parseFloat(product.price) - commissionAmount;
       }
       
       console.log('Datos del plan a guardar:', planData);
@@ -683,52 +670,6 @@ Me gustaría recibir más información sobre el proceso de solicitud.
       setIsSavingPlan(false);
       setShowLoadingPopup(false);
     }
-  };
-
-  // Función utilitaria para verificar cálculos de financiamiento
-  const debugFinancingCalculations = () => {
-    const productPrice = parseFloat(product.price);
-    const commissionRate = company.commission_rate || 0;
-    const commissionRateDecimal = commissionRate / 100;
-    
-    console.log('==== DEBUG CÁLCULOS DE FINANCIAMIENTO ====');
-    console.log('Precio del producto:', productPrice);
-    console.log('Tasa de comisión (%):', commissionRate);
-    console.log('Tasa de comisión (decimal):', commissionRateDecimal);
-    
-    if (product.title === "Crédito Personal") {
-      // Cálculos para crédito personal
-      const commissionAmount = Math.round(productPrice * commissionRateDecimal * 100) / 100;
-      const netAmount = productPrice - commissionAmount;
-      
-      console.log('CRÉDITO PERSONAL:');
-      console.log('- Monto solicitado:', productPrice);
-      console.log('- Comisión calculada:', commissionAmount);
-      console.log('- Monto neto a recibir:', netAmount);
-    } else {
-      // Cálculos para productos
-      // Método 1: función calculateFinancingAmount
-      const financingAmountMethod1 = calculateFinancingAmount();
-      const commissionAmountMethod1 = Math.round((financingAmountMethod1 - productPrice) * 100) / 100;
-      
-      // Método 2: cálculo directo
-      const financingAmountMethod2 = commissionRateDecimal > 0 
-        ? Math.round(productPrice / (1 - commissionRateDecimal) * 100) / 100
-        : productPrice;
-      const commissionAmountMethod2 = Math.round((financingAmountMethod2 - productPrice) * 100) / 100;
-      
-      console.log('PRODUCTO:');
-      console.log('Método 1 (calculateFinancingAmount):');
-      console.log('- Monto financiado:', financingAmountMethod1);
-      console.log('- Comisión calculada:', commissionAmountMethod1);
-      console.log('Método 2 (cálculo directo):');
-      console.log('- Monto financiado:', financingAmountMethod2);
-      console.log('- Comisión calculada:', commissionAmountMethod2);
-      console.log('¿Resultados iguales?', 
-        financingAmountMethod1 === financingAmountMethod2 && 
-        commissionAmountMethod1 === commissionAmountMethod2);
-    }
-    console.log('=======================================');
   };
 
   return (
@@ -1142,8 +1083,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
         </div>
       </div>
 
-      <style>
-        {`
+      <style jsx>{`
         @keyframes float {
           0%, 100% {
             transform: translateY(0);
@@ -1166,8 +1106,7 @@ Me gustaría recibir más información sobre el proceso de solicitud.
             transform: rotate(360deg);
           }
         }
-        `}
-      </style>
+      `}</style>
     </div>
   );
 };
