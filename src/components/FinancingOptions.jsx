@@ -1142,7 +1142,8 @@ Me gustaría recibir más información sobre el proceso de solicitud.
         </div>
       </div>
 
-      <style jsx>{`
+      <style>
+        {`
         @keyframes float {
           0%, 100% {
             transform: translateY(0);
@@ -1165,7 +1166,8 @@ Me gustaría recibir más información sobre el proceso de solicitud.
             transform: rotate(360deg);
           }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
