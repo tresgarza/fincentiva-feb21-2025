@@ -686,9 +686,18 @@ Me interesa solicitar un crédito con las siguientes características:
 💵 Monto a financiar (incluye comisión ${company.commission_rate}%): ${formatCurrency(financingAmount)}`;
           }
         } else {
-          // Para crédito personal solo mostrar el monto solicitado
+          // Para crédito personal mostrar el monto solicitado, la comisión y el monto neto a recibir
+          const commissionAmount = calculatePersonalLoanCommission();
+          const netAmount = parseFloat(product.price) - commissionAmount;
+          
           message += `
 💰 Monto solicitado: ${formatCurrency(product.price)}`;
+          
+          if (company.commission_rate > 0) {
+            message += `
+💸 Comisión (${company.commission_rate}%): ${formatCurrency(commissionAmount)}
+💵 Monto neto a recibir: ${formatCurrency(netAmount)}`;
+          }
         }
 
         // Añadir enlace del producto si existe
