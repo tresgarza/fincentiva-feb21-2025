@@ -192,6 +192,42 @@ const updateCashRequestWithPlan = async (requestId, planId) => {
 };
 
 /**
+ * Actualiza el monto neto en una solicitud de efectivo
+ * @param {string} requestId - ID de la solicitud
+ * @param {number} netAmount - Monto neto a recibir
+ * @returns {Promise<Object>} - Objeto con el resultado de la operación
+ */
+export const updateCashRequestNetAmount = async (requestId, netAmount) => {
+  try {
+    console.log('Actualizando monto neto en cash_requests:', {
+      requestId,
+      netAmount
+    });
+    
+    if (!requestId) {
+      console.error('Error: ID de solicitud (requestId) es nulo o vacío');
+      return { success: false, error: 'ID de solicitud no proporcionado' };
+    }
+    
+    const { data, error } = await supabase
+      .from('cash_requests')
+      .update({ net_amount: netAmount })
+      .eq('id', requestId);
+
+    if (error) {
+      console.error('Error al actualizar monto neto en cash_requests:', error);
+      return { success: false, error: error.message };
+    }
+    
+    console.log('Monto neto actualizado correctamente en cash_requests');
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error al actualizar monto neto en cash_requests:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
  * Obtiene el advisor asociado a una empresa
  * @param {string} companyId - ID de la empresa
  * @returns {Promise<Object>} - Objeto con los datos del advisor

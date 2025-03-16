@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Button from "./Button";
 import { API_URL } from '../config/api';
-import { saveProductSimulation, saveCashRequest, saveSelectedPlan, getCompanyAdvisor } from '../services/supabaseServices';
+import { saveProductSimulation, saveCashRequest, saveSelectedPlan, getCompanyAdvisor, updateCashRequestNetAmount } from '../services/supabaseServices';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../config/supabase';
 
@@ -608,13 +608,21 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         // Para crédito personal, la comisión se deduce del monto solicitado
         const commissionAmount = calculatePersonalLoanCommission();
         planData.commission_amount = commissionAmount;
-        planData.net_amount = parseFloat(product.price) - commissionAmount;
+        
+        // Calcular net_amount pero NO incluirlo en planData (no existe en selected_plans)
+        const netAmount = parseFloat(product.price) - commissionAmount;
+        
+        // Guardar estos datos solo para logging y para uso interno
+        // NO usar planData.net_amount ya que causará error en Supabase
         
         // Logs adicionales para crédito personal
         console.log('PlanSelection (Crédito Personal) - Monto solicitado:', parseFloat(product.price));
         console.log('PlanSelection (Crédito Personal) - Comisión:', commissionAmount);
-        console.log('PlanSelection (Crédito Personal) - Monto neto:', planData.net_amount);
+        console.log('PlanSelection (Crédito Personal) - Monto neto (solo para información):', netAmount);
         console.log('PlanSelection (Crédito Personal) - ID Simulación:', currentSimulationId);
+        
+        // Si necesitamos guardar el monto neto, podemos hacerlo en la tabla cash_requests
+        // después de guardar el plan, pero no en selected_plans
       }
       
       console.log('Datos del plan a guardar:', planData);
@@ -648,6 +656,18 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
           if (!result.success) {
             console.error('Error específico para crédito personal:', result.error);
             throw new Error(`Error al guardar plan para crédito personal: ${result.error}`);
+          }
+          
+          // Si es crédito personal y se guardó correctamente, actualizar el monto neto en cash_requests
+          const netAmount = parseFloat(product.price) - calculatePersonalLoanCommission();
+          console.log('Actualizando monto neto en cash_requests:', netAmount);
+          
+          const updateNetResult = await updateCashRequestNetAmount(currentSimulationId, netAmount);
+          if (!updateNetResult.success) {
+            console.warn('No se pudo actualizar el monto neto en cash_requests:', updateNetResult.error);
+            // No lanzamos error aquí para no interrumpir el flujo principal
+          } else {
+            console.log('Monto neto actualizado correctamente en cash_requests');
           }
         }
 
