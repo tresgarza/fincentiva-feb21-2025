@@ -171,33 +171,12 @@ const Header = () => {
   };
 
   const generateContactMessage = () => {
-    // Formatear la fecha actual para el mensaje
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString('es-MX', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-    
     // Obtener datos del usuario y empresa
     const userData = companyData.user_data || {};
     const userName = userData.firstName ? `${userData.firstName} ${userData.lastName || ''}` : 'un colaborador';
     const companyName = companyData.name || 'mi empresa';
-    const companyCode = companyData.employee_code || companyData.code || '';
     
-    return `¡Hola! 👋
-
-Soy ${userName} de ${companyName}${companyCode ? ` (código: ${companyCode})` : ''} y estoy utilizando la plataforma FINCENTIVA.
-
-Necesito asistencia con:
-- Información sobre financiamiento disponible
-- Consultar el estado de mis simulaciones recientes
-- Resolver dudas sobre los planes ofrecidos
-
-La fecha actual es: ${formattedDate}
-
-Agradezco tu atención y quedo en espera de tu respuesta.
-¡Saludos!`;
+    return `Hola, soy ${userName} y trabajo en ${companyName}. Los contacto a través de la plataforma de crédito vía nómina de Fincentiva para hacer una consulta.`;
   };
 
   const handleLogout = () => {
