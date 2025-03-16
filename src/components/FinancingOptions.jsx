@@ -609,20 +609,17 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         const commissionAmount = calculatePersonalLoanCommission();
         planData.commission_amount = commissionAmount;
         
-        // Calcular net_amount pero NO incluirlo en planData (no existe en selected_plans)
+        // Calcular el monto neto que recibirá el usuario (el valor de "Recibirás")
         const netAmount = parseFloat(product.price) - commissionAmount;
         
-        // Guardar estos datos solo para logging y para uso interno
-        // NO usar planData.net_amount ya que causará error en Supabase
+        // Guardar el monto neto en financing_amount para crédito personal
+        planData.financing_amount = netAmount;
         
         // Logs adicionales para crédito personal
         console.log('PlanSelection (Crédito Personal) - Monto solicitado:', parseFloat(product.price));
         console.log('PlanSelection (Crédito Personal) - Comisión:', commissionAmount);
-        console.log('PlanSelection (Crédito Personal) - Monto neto (solo para información):', netAmount);
+        console.log('PlanSelection (Crédito Personal) - Monto neto (Recibirás):', netAmount);
         console.log('PlanSelection (Crédito Personal) - ID Simulación:', currentSimulationId);
-        
-        // Si necesitamos guardar el monto neto, podemos hacerlo en la tabla cash_requests
-        // después de guardar el plan, pero no en selected_plans
       }
       
       console.log('Datos del plan a guardar:', planData);
