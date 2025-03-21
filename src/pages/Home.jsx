@@ -5,13 +5,12 @@ import Hero from "../components/Hero";
 import Benefits from "../components/Benefits";
 import Footer from "../components/Footer";
 import ButtonGradient from "../assets/svg/ButtonGradient";
-import ProductLinkForm from "../components/ProductLinkForm";
-import FinancingOptions from "../components/FinancingOptions";
 import { getProductInfo } from "../services/api";
 
 const Home = () => {
   const navigate = useNavigate();
   const [companyData, setCompanyData] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [productData, setProductData] = useState(null);
   const [showFinancingOptions, setShowFinancingOptions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +25,9 @@ const Home = () => {
     if (!storedCompanyData) {
       navigate('/login');
     } else {
-      setCompanyData(JSON.parse(storedCompanyData));
+      const parsedData = JSON.parse(storedCompanyData);
+      setCompanyData(parsedData);
+      setUserData(parsedData.user_data);
     }
   }, [navigate]);
 
@@ -44,7 +45,8 @@ const Home = () => {
         state: { 
           productData: data, 
           monthlyIncome: income,
-          companyData: companyData 
+          companyData: companyData,
+          userData: userData
         } 
       });
     } catch (err) {
@@ -73,7 +75,8 @@ const Home = () => {
         state: { 
           productData: simulatedProduct, 
           monthlyIncome: income,
-          companyData: companyData 
+          companyData: companyData,
+          userData: userData
         } 
       });
     } catch (err) {
@@ -100,6 +103,24 @@ const Home = () => {
     setIsLoading(false);
   };
 
+  // Función para obtener el nombre completo del usuario
+  const getFullName = () => {
+    if (!userData) return '';
+    
+    const firstName = userData.first_name || userData.firstName || '';
+    const paternalSurname = userData.paternal_surname || '';
+    const maternalSurname = userData.maternal_surname || '';
+    const lastName = userData.lastName || '';
+    
+    // Si tenemos el formato de nombre completamente separado
+    if (firstName && (paternalSurname || maternalSurname)) {
+      return `${firstName} ${paternalSurname} ${maternalSurname}`.trim();
+    }
+    
+    // Si tenemos el formato simplificado
+    return `${firstName} ${lastName}`.trim();
+  };
+
   if (!companyData) {
     return null;
   }
@@ -121,7 +142,21 @@ const Home = () => {
 
       {/* Content */}
       <div className="relative z-10">
-        <Header />
+        <Header userData={userData} companyData={companyData} />
+        
+        {/* User Welcome Banner */}
+        {userData && (
+          <div className="bg-gradient-to-r from-[#33FF57]/20 to-[#40E0D0]/20 backdrop-blur-sm border border-[#33FF57]/30 rounded-lg mx-4 md:mx-8 mt-4 p-4 text-center">
+            <h2 className="text-lg md:text-xl font-medium">
+              Bienvenido(a), <span className="font-bold text-[#33FF57]">{getFullName()}</span>
+            </h2>
+            <p className="text-sm text-n-3">
+              Empresa: <span className="text-n-1">{companyData.name}</span> | 
+              Teléfono: <span className="text-n-1">{userData.phone}</span>
+            </p>
+          </div>
+        )}
+        
         <div className="pt-[60px]"> {/* Espacio reducido para compensar el header y el banner fijos */}
           <Hero 
             activeForm={activeForm}
@@ -131,6 +166,7 @@ const Home = () => {
             handleAmountSubmit={handleAmountSubmit}
             isLoading={isLoading}
             companyData={companyData}
+            userData={userData}
             showLoader={showLoader}
             productData={productData}
             monthlyIncome={monthlyIncome}

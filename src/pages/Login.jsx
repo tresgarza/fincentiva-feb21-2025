@@ -1,4 +1,4 @@
-import CompanyAuth from '../components/CompanyAuth';
+import AuthContainer from '../components/auth/AuthContainer';
 import Footer from '../components/Footer';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logoCartotec from '../assets/logos/logo_empresa_cartotec.png';
@@ -26,18 +26,17 @@ const Login = () => {
     }
   }, [navigate]);
 
-  const handleAuthenticated = (companyData) => {
+  const handleAuthenticated = (authData) => {
     // Log para depurar
-    console.log('Datos de la empresa en handleAuthenticated:', companyData);
-    console.log('Datos del usuario en handleAuthenticated:', companyData.user_data);
+    console.log('Datos de autenticación:', authData);
+    console.log('Datos del usuario:', authData.user_data);
     
-    // Guardar los datos de la empresa en localStorage
-    localStorage.setItem('companyData', JSON.stringify(companyData));
+    // Guardar los datos en localStorage
+    localStorage.setItem('companyData', JSON.stringify(authData));
     
     // Verificar que se guardó correctamente
     const storedData = JSON.parse(localStorage.getItem('companyData') || '{}');
     console.log('Datos guardados en localStorage:', storedData);
-    console.log('Teléfono guardado en localStorage:', storedData.user_data?.phone);
     
     // Redirigir a la página que intentaba acceder o a la página de inicio por defecto
     const from = location.state?.from || '/inicio';
@@ -47,7 +46,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-n-8 flex flex-col">
       <div className="flex-grow">
-        <CompanyAuth onAuthenticated={handleAuthenticated} />
+        <AuthContainer onAuthenticated={handleAuthenticated} />
       </div>
       <Footer />
     </div>

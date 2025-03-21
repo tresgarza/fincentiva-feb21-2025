@@ -1,7 +1,80 @@
-import { API_URL } from '../config/api';
+import { API_URL, SUPABASE_URL, SUPABASE_ANON_KEY } from '../config/api';
+import { createClient } from '@supabase/supabase-js';
 
 console.log('API URL:', API_URL);
 
+// Initialize Supabase client
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// User related functions
+export async function getUserByPhone(phone, companyId) {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('phone', phone)
+      .eq('company_id', companyId)
+      .single();
+    
+    if (error) {
+      console.error('Error getting user by phone:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error getting user by phone:', error);
+    return null;
+  }
+}
+
+export async function registerUser(userData) {
+  try {
+    // Check if user with this phone already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('phone', userData.phone)
+      .eq('company_id', userData.company_id);
+    
+    if (existingUser && existingUser.length > 0) {
+      throw new Error('Un usuario con este número de teléfono ya existe para esta empresa');
+    }
+    
+    // Insert new user
+    const { data, error } = await supabase
+      .from('users')
+      .insert([userData])
+      .select();
+    
+    if (error) {
+      console.error('Error registering user:', error);
+      throw new Error(error.message || 'Error al registrar usuario');
+    }
+    
+    return data[0];
+  } catch (error) {
+    console.error('Error registering user:', error);
+    throw new Error(error.message || 'Error al registrar usuario');
+  }
+}
+
+export async function updateUserLastLogin(userId) {
+  try {
+    const { error } = await supabase
+      .from('users')
+      .update({ last_login: new Date() })
+      .eq('id', userId);
+    
+    if (error) {
+      console.error('Error updating user last login:', error);
+    }
+  } catch (error) {
+    console.error('Error updating user last login:', error);
+  }
+}
+
+// Company related functions
 export async function getCompanies() {
   try {
     const response = await fetch(`${API_URL}/companies`);
