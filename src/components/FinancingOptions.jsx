@@ -51,12 +51,9 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
 
   // Calcular la comisión para créditos personales (monto solicitado * comisión)
   const calculatePersonalLoanCommission = () => {
-    if (product.title !== "Crédito Personal") return 0;
-    
-    const commissionRate = (company.commission_rate || 0) / 100;
-    return commissionRate > 0 
-      ? Math.round(product.price * commissionRate * 100) / 100
-      : 0;
+    const rate = company.commission_rate || 0;
+    const amount = parseFloat(product.price);
+    return (rate / 100) * amount;
   };
 
   // Mostrar notificación
@@ -772,7 +769,7 @@ Me interesa solicitar un crédito con las siguientes características:
 
 
 *Datos de Contacto:*
-👤 Nombre: ${userData.firstName} ${userData.lastName}
+👤 Nombre: ${getFormattedUserName()}
 📞 Teléfono: ${userData.phone || 'No proporcionado'}
 
 Me gustaría recibir más información sobre el proceso de solicitud.
@@ -876,6 +873,44 @@ Me gustaría recibir más información sobre el proceso de solicitud.
       console.error('Error al guardar el plan seleccionado:', error);
       showNotification("Hubo un error al guardar el plan seleccionado", "error");
     }
+  };
+
+  // Función para obtener el nombre del usuario formateado correctamente
+  const getFormattedUserName = () => {
+    // Si tenemos firstName y lastName, usarlos
+    if (userData.firstName && userData.lastName) {
+      return `${userData.firstName} ${userData.lastName}`;
+    }
+    
+    // Si tenemos first_name y apellidos
+    if (userData.first_name) {
+      let fullName = userData.first_name;
+      if (userData.paternal_surname) {
+        fullName += ` ${userData.paternal_surname}`;
+      }
+      if (userData.maternal_surname) {
+        fullName += ` ${userData.maternal_surname}`;
+      }
+      return fullName;
+    }
+    
+    // Si tenemos un client_name almacenado
+    if (userData.client_name) {
+      return userData.client_name;
+    }
+    
+    // Si hay un nombre completo en el objeto usuario
+    if (userData.fullName) {
+      return userData.fullName;
+    }
+    
+    // Verificar si hay nombre en el objeto company
+    if (company.user_data && company.user_data.firstName) {
+      return `${company.user_data.firstName} ${company.user_data.lastName || ''}`;
+    }
+    
+    // Como último recurso, devolver un valor por defecto
+    return 'Cliente';
   };
 
   return (

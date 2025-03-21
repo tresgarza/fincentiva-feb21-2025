@@ -439,6 +439,46 @@ export const saveToApplicationsTable = async (applicationData) => {
   try {
     console.log('Guardando en tabla applications:', applicationData);
     
+    // Verificar primero si ya existe un registro con el mismo simulation_id y simulation_type
+    const { data: existingRecords, error: queryError } = await supabase
+      .from('applications')
+      .select('id')
+      .eq('simulation_id', applicationData.simulation_id)
+      .eq('simulation_type', applicationData.simulation_type);
+      
+    if (queryError) {
+      console.error('Error al verificar duplicados en applications:', queryError);
+      return { success: false, error: queryError };
+    }
+    
+    // Si ya existe un registro, actualizar en lugar de insertar
+    if (existingRecords && existingRecords.length > 0) {
+      console.log('Ya existe un registro para esta simulación. Actualizando en lugar de insertar.');
+      
+      const { data, error } = await supabase
+        .from('applications')
+        .update({
+          status: applicationData.status,
+          client_name: applicationData.client_name,
+          client_email: applicationData.client_email,
+          client_phone: applicationData.client_phone,
+          company_id: applicationData.company_id,
+          company_name: applicationData.company_name,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingRecords[0].id)
+        .select();
+        
+      if (error) {
+        console.error('Error al actualizar applications:', error);
+        return { success: false, error };
+      }
+      
+      console.log('Actualización exitosa en applications:', data);
+      return { success: true, data };
+    }
+    
+    // Si no existe, insertar nuevo registro
     const { data, error } = await supabase
       .from('applications')
       .insert([{
