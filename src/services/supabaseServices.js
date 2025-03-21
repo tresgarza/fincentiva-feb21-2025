@@ -13,6 +13,21 @@ export const saveProductSimulation = async (simulationData) => {
       .select();
 
     if (error) throw error;
+    
+    // Guardar los datos del cliente en la tabla applications
+    if (data && data.length > 0) {
+      await saveToApplicationsTable({
+        simulation_id: data[0].id,
+        simulation_type: 'product',
+        client_name: simulationData.client_name,
+        client_email: simulationData.client_email,
+        client_phone: simulationData.client_phone,
+        status: 'Simulación',
+        company_id: simulationData.company_id,
+        company_name: simulationData.company_name
+      });
+    }
+    
     return { success: true, data };
   } catch (error) {
     console.error('Error al guardar la simulación de producto:', error);
@@ -33,6 +48,21 @@ export const saveCashRequest = async (requestData) => {
       .select();
 
     if (error) throw error;
+    
+    // Guardar los datos del cliente en la tabla applications
+    if (data && data.length > 0) {
+      await saveToApplicationsTable({
+        simulation_id: data[0].id,
+        simulation_type: 'cash',
+        client_name: requestData.client_name,
+        client_email: requestData.client_email,
+        client_phone: requestData.client_phone,
+        status: 'Solicitud',
+        company_id: requestData.company_id,
+        company_name: requestData.company_name
+      });
+    }
+    
     return { success: true, data };
   } catch (error) {
     console.error('Error al guardar la solicitud de efectivo:', error);
@@ -81,6 +111,19 @@ export const saveSelectedPlan = async (planData) => {
     }
     
     console.log('Plan seleccionado guardado exitosamente:', data);
+    
+    // Actualizar el estado en applications al seleccionar un plan
+    if (data && data.length > 0) {
+      await updateApplicationStatus({
+        simulation_id: planData.simulation_id,
+        simulation_type: planData.simulation_type,
+        client_name: planData.client_name,
+        client_email: planData.client_email,
+        client_phone: planData.client_phone,
+        status: 'Completado',
+        plan_id: data[0].id
+      });
+    }
     
     let updateResult = null;
     
@@ -384,5 +427,96 @@ export const getCompanyAdvisor = async (companyId) => {
   } catch (error) {
     console.error('Error al obtener el advisor de la empresa:', error);
     return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Guarda información en la tabla applications
+ * @param {Object} applicationData - Datos para la tabla applications
+ * @returns {Promise<Object>} - Resultado de la operación
+ */
+export const saveToApplicationsTable = async (applicationData) => {
+  try {
+    console.log('Guardando en tabla applications:', applicationData);
+    
+    const { data, error } = await supabase
+      .from('applications')
+      .insert([{
+        status: applicationData.status,
+        client_name: applicationData.client_name,
+        client_email: applicationData.client_email,
+        client_phone: applicationData.client_phone,
+        simulation_id: applicationData.simulation_id,
+        simulation_type: applicationData.simulation_type,
+        company_id: applicationData.company_id,
+        company_name: applicationData.company_name
+      }])
+      .select();
+      
+    if (error) {
+      console.error('Error al guardar en applications:', error);
+      return { success: false, error };
+    }
+    
+    console.log('Guardado exitoso en applications:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error al guardar en applications:', error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * Actualiza el estado de una aplicación en la tabla applications
+ * @param {Object} updateData - Datos para actualizar en la tabla applications
+ * @returns {Promise<Object>} - Resultado de la operación
+ */
+export const updateApplicationStatus = async (updateData) => {
+  try {
+    console.log('Actualizando estado en applications:', updateData);
+    
+    // Buscar el registro correspondiente en la tabla applications
+    const { data: existingRecords, error: queryError } = await supabase
+      .from('applications')
+      .select('id')
+      .eq('simulation_id', updateData.simulation_id)
+      .eq('simulation_type', updateData.simulation_type);
+      
+    if (queryError) {
+      console.error('Error al buscar aplicación:', queryError);
+      return { success: false, error: queryError };
+    }
+    
+    if (existingRecords && existingRecords.length > 0) {
+      // Actualizar el registro existente
+      const { data, error } = await supabase
+        .from('applications')
+        .update({
+          status: updateData.status,
+          client_name: updateData.client_name || null,
+          client_email: updateData.client_email || null,
+          client_phone: updateData.client_phone || null,
+          selected_plan_id: updateData.plan_id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingRecords[0].id);
+        
+      if (error) {
+        console.error('Error al actualizar applications:', error);
+        return { success: false, error };
+      }
+      
+      console.log('Actualización exitosa en applications:', data);
+      return { success: true, data };
+    } else {
+      // Si no existe el registro, crear uno nuevo
+      return await saveToApplicationsTable({
+        ...updateData,
+        status: updateData.status
+      });
+    }
+  } catch (error) {
+    console.error('Error al actualizar applications:', error);
+    return { success: false, error };
   }
 }; 
