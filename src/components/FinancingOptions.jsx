@@ -295,11 +295,34 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
       let netAmount = 0;
       let financing_amount = 0;
       
-      // Datos comunes para ambos tipos de simulación - MOVER ANTES de cualquier referencia
+      // Construir el nombre completo del cliente utilizando todos los datos disponibles
+      let clientName = '';
+      if (userData.first_name) {
+        clientName = userData.first_name;
+        if (userData.paternal_surname) {
+          clientName += ' ' + userData.paternal_surname;
+        }
+        if (userData.maternal_surname) {
+          clientName += ' ' + userData.maternal_surname;
+        }
+      } else if (userData.firstName) {
+        clientName = userData.firstName;
+        if (userData.lastName) {
+          clientName += ' ' + userData.lastName;
+        }
+      }
+      
+      // Obtener el email del usuario
+      const clientEmail = userData.email || '';
+      
+      // Datos comunes para ambos tipos de simulación
       const commonData = {
-        user_first_name: userData.firstName || '',
-        user_last_name: userData.lastName || '',
+        user_first_name: userData.firstName || userData.first_name || '',
+        user_last_name: userData.lastName || (userData.paternal_surname ? `${userData.paternal_surname} ${userData.maternal_surname || ''}` : '') || '',
         user_phone: userData.phone || '',
+        client_name: clientName,
+        client_email: clientEmail,
+        client_phone: userData.phone || '',
         company_id: company.id,
         company_name: company.name,
         company_code: companyCode,
@@ -311,6 +334,11 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         commission_amount: commissionAmount,
         is_preauthorized: true
       };
+      
+      console.log('Datos del cliente a guardar en la base de datos:');
+      console.log('client_name:', commonData.client_name);
+      console.log('client_email:', commonData.client_email);
+      console.log('client_phone:', commonData.client_phone);
       
       if (isProductSimulation) {
         // Para productos, la comisión se calcula como la diferencia entre el monto financiado y el precio original
@@ -565,6 +593,26 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         }
       }
       
+      // Construir el nombre completo del cliente
+      let clientName = '';
+      if (userData.first_name) {
+        clientName = userData.first_name;
+        if (userData.paternal_surname) {
+          clientName += ' ' + userData.paternal_surname;
+        }
+        if (userData.maternal_surname) {
+          clientName += ' ' + userData.maternal_surname;
+        }
+      } else if (userData.firstName) {
+        clientName = userData.firstName;
+        if (userData.lastName) {
+          clientName += ' ' + userData.lastName;
+        }
+      }
+      
+      // Obtener el email del usuario
+      const clientEmail = userData.email || '';
+      
       // Save selected plan to Supabase
       const planData = {
         simulation_id: currentSimulationId,
@@ -579,15 +627,23 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
         company_name: company.name,
         company_code: companyCode,
         // Datos del usuario
-        user_first_name: userData.firstName || '',
-        user_last_name: userData.lastName || '',
+        user_first_name: userData.firstName || userData.first_name || '',
+        user_last_name: userData.lastName || (userData.paternal_surname ? `${userData.paternal_surname} ${userData.maternal_surname || ''}` : '') || '',
         user_phone: userData.phone || '',
+        client_name: clientName,
+        client_email: clientEmail,
+        client_phone: userData.phone || '',
         // Datos del producto
         ...productData,
         // Información de comisión y financiamiento
         commission_rate: company.commission_rate || 0,
         is_preauthorized: true
       };
+      
+      console.log('Datos del cliente a guardar en el plan:');
+      console.log('client_name:', planData.client_name);
+      console.log('client_email:', planData.client_email);
+      console.log('client_phone:', planData.client_phone);
       
       // Calcular montos para comisión y financiamiento según el tipo de plan
       if (simulationType === 'product') {
@@ -721,7 +777,7 @@ Me interesa solicitar un crédito con las siguientes características:
 
 Me gustaría recibir más información sobre el proceso de solicitud.
 
-⚠️ *ACLARACIÓN IMPORTANTE*: Entiendo que la aprobación mostrada es pre-autorizada. Acepto que esto es una simulación y que el crédito final puede variar, sujeto a verificación por parte de Financiera Incentiva y el área administrativa de la empresa.
+⚠️ *ACLARACIÓN IMPORTANTE*: Entiendo que la aprobación mostrada es pre-autorizada. Acepto que esto es una simulación y que el crédito final puede variar, sujeto a verificación por parte de Financiera Incentiva y el área administrativa de mi empresa.
 ¡Gracias!`;
 
         // Esperar a que la animación termine (mínimo 3 segundos)
