@@ -770,7 +770,7 @@ Me interesa solicitar un crédito con las siguientes características:
 
 *Datos de Contacto:*
 👤 Nombre: ${getFormattedUserName()}
-📞 Teléfono: ${userData.phone || 'No proporcionado'}
+📞 Teléfono: ${userData?.phone || 'No proporcionado'}
 
 Me gustaría recibir más información sobre el proceso de solicitud.
 
@@ -877,6 +877,9 @@ Me gustaría recibir más información sobre el proceso de solicitud.
 
   // Función para obtener el nombre del usuario formateado correctamente
   const getFormattedUserName = () => {
+    // Asegurarse de que userData esté definido
+    const userData = company.user_data || {};
+    
     // Si tenemos firstName y lastName, usarlos
     if (userData.firstName && userData.lastName) {
       return `${userData.firstName} ${userData.lastName}`;

@@ -443,11 +443,38 @@ export const saveToApplicationsTable = async (applicationData) => {
     const { data: existingRecords, error: queryError } = await supabase
       .from('applications')
       .select('id')
-      .eq('simulation_id', applicationData.simulation_id)
+      .eq('id', applicationData.simulation_id)
       .eq('simulation_type', applicationData.simulation_type);
       
     if (queryError) {
       console.error('Error al verificar duplicados en applications:', queryError);
+      // Si el error es de columna no existente, intenta buscar de otra manera
+      if (queryError.message && queryError.message.includes('does not exist')) {
+        console.log('Columna no existe, insertando nuevo registro sin verificar duplicados');
+        // Si falla la verificación por estructura de columnas, intentamos insertar directamente
+        const { data, error } = await supabase
+          .from('applications')
+          .insert([{
+            status: applicationData.status,
+            client_name: applicationData.client_name,
+            client_email: applicationData.client_email,
+            client_phone: applicationData.client_phone,
+            simulation_id: applicationData.simulation_id,
+            simulation_type: applicationData.simulation_type,
+            company_id: applicationData.company_id,
+            company_name: applicationData.company_name
+          }])
+          .select();
+          
+        if (error) {
+          console.error('Error al guardar en applications:', error);
+          return { success: false, error };
+        }
+        
+        console.log('Guardado exitoso en applications (sin verificación previa):', data);
+        return { success: true, data };
+      }
+      
       return { success: false, error: queryError };
     }
     
@@ -519,11 +546,21 @@ export const updateApplicationStatus = async (updateData) => {
     const { data: existingRecords, error: queryError } = await supabase
       .from('applications')
       .select('id')
-      .eq('simulation_id', updateData.simulation_id)
+      .eq('id', updateData.simulation_id)
       .eq('simulation_type', updateData.simulation_type);
       
     if (queryError) {
       console.error('Error al buscar aplicación:', queryError);
+      // Si el error es de columna no existente, intenta buscar de otra manera
+      if (queryError.message && queryError.message.includes('does not exist')) {
+        console.log('Error de estructura de columnas, intentando crear registro nuevo');
+        // Si falla la búsqueda por estructura de columnas, intentamos insertar directamente
+        return await saveToApplicationsTable({
+          ...updateData,
+          status: updateData.status
+        });
+      }
+      
       return { success: false, error: queryError };
     }
     
