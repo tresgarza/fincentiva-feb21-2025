@@ -8,6 +8,22 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // User related functions
 export async function getUserByPhone(phone, companyId) {
+  // Bypass para usuario dummy
+  if (phone === '8182838485' && companyId === 'demo-company-id') {
+    return {
+      id: 'demo-user-id',
+      first_name: 'Diego',
+      paternal_surname: 'González',
+      maternal_surname: 'Demo',
+      birth_date: '1985-07-22',
+      phone: '8182838485',
+      email: '8182838485@gmail.com',
+      company_id: 'demo-company-id',
+      created_at: new Date().toISOString(),
+      last_login: new Date().toISOString()
+    };
+  }
+
   try {
     const { data, error } = await supabase
       .from('users')
@@ -29,6 +45,22 @@ export async function getUserByPhone(phone, companyId) {
 }
 
 export async function registerUser(userData) {
+  // Bypass para usuario dummy
+  if (userData.phone === '8182838485' && userData.company_id === 'demo-company-id') {
+    return {
+      id: 'demo-user-id',
+      first_name: userData.first_name || 'Diego',
+      paternal_surname: userData.paternal_surname || 'González',
+      maternal_surname: userData.maternal_surname || 'Demo',
+      birth_date: userData.birth_date || '1985-07-22',
+      phone: '8182838485',
+      email: userData.email || '8182838485@gmail.com',
+      company_id: 'demo-company-id',
+      created_at: new Date().toISOString(),
+      last_login: new Date().toISOString()
+    };
+  }
+
   try {
     // Check if user with this phone already exists
     const { data: existingUser } = await supabase
@@ -92,6 +124,19 @@ export async function getCompanies() {
 }
 
 export async function getByCode(employeeCode) {
+  // Cuenta dummy para desarrollo local
+  if (employeeCode === 'DEMO123') {
+    return {
+      id: 'demo-company-id',
+      name: 'Empresa Demo',
+      code: 'DEMO123',
+      description: 'Empresa de demostración para desarrollo',
+      logo: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+  }
+
   try {
     const response = await fetch(`${API_URL}/companies/code/${employeeCode}`);
 

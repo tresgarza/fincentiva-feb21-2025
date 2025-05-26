@@ -45,6 +45,35 @@ const Login = ({ onAuthenticated, switchToRegister }) => {
     setIsLoading(true);
 
     try {
+      // Bypass completo para usuario dummy
+      if (employeeCode === 'DEMO123' && phone === '8182838485') {
+        const authData = {
+          id: 'demo-company-id',
+          name: 'Empresa Demo',
+          code: 'DEMO123',
+          description: 'Empresa de demostración para desarrollo',
+          logo: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user_data: {
+            id: 'demo-user-id',
+            first_name: 'Diego',
+            paternal_surname: 'González',
+            maternal_surname: 'Demo',
+            birth_date: '1985-07-22',
+            phone: '8182838485',
+            email: '8182838485@gmail.com',
+            company_id: 'demo-company-id',
+            created_at: new Date().toISOString(),
+            last_login: new Date().toISOString()
+          }
+        };
+        
+        onAuthenticated(authData);
+        setIsLoading(false);
+        return;
+      }
+
       // Obtener datos de la empresa
       const companyData = await getByCode(employeeCode);
       
