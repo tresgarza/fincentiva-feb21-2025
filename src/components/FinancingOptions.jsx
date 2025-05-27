@@ -87,20 +87,34 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
     if (companyPeriod === 'weekly') {
       if (planPeriod === 'quincenas') {
         adjustedPayment = paymentPerPeriod / 2; // De quincenal a semanal
+      } else if (planPeriod === 'decenas') {
+        adjustedPayment = paymentPerPeriod / 1.43; // 10÷7 ≈ 1.43
       } else if (planPeriod === 'meses') {
         adjustedPayment = paymentPerPeriod / 4; // De mensual a semanal
       }
     } else if (companyPeriod === 'biweekly') {
       if (planPeriod === 'semanas') {
         adjustedPayment = paymentPerPeriod * 2; // De semanal a quincenal
+      } else if (planPeriod === 'decenas') {
+        adjustedPayment = paymentPerPeriod / 1.5; // 15÷10 = 1.5
       } else if (planPeriod === 'meses') {
         adjustedPayment = paymentPerPeriod / 2; // De mensual a quincenal
+      }
+    } else if (companyPeriod === 'decenal') {
+      if (planPeriod === 'semanas') {
+        adjustedPayment = paymentPerPeriod * 1.43; // 10÷7 ≈ 1.43
+      } else if (planPeriod === 'quincenas') {
+        adjustedPayment = paymentPerPeriod / 1.5; // 15÷10 = 1.5
+      } else if (planPeriod === 'meses') {
+        adjustedPayment = paymentPerPeriod / 3; // 30÷10 = 3
       }
     } else { // monthly
       if (planPeriod === 'semanas') {
         adjustedPayment = paymentPerPeriod * 4; // De semanal a mensual
       } else if (planPeriod === 'quincenas') {
         adjustedPayment = paymentPerPeriod * 2; // De quincenal a mensual
+      } else if (planPeriod === 'decenas') {
+        adjustedPayment = paymentPerPeriod * 3; // De decenal a mensual
       }
     }
 

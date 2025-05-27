@@ -23,6 +23,7 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
       case 'weekly': return 'semana';
       case 'biweekly': return 'quincena';
       case 'fortnightly': return 'catorcena';
+      case 'decenal': return 'decena';
       default: return 'mes';
     }
   };
@@ -49,6 +50,10 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
       case 'fortnightly':
         periodicRate = annualRate / 100 / 26; // Tasa quincenal
         maxPeriods = 26; // 26 quincenas (1 año)
+        break;
+      case 'decenal':
+        periodicRate = annualRate / 100 / 36.5; // Tasa decenal (365 días ÷ 10 días)
+        maxPeriods = 36.5; // 36.5 decenas (1 año)
         break;
       default:
         periodicRate = annualRate / 100 / 12; // Tasa mensual
@@ -226,6 +231,9 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
         case 'biweekly':
         case 'fortnightly':
           monthlyIncome = monthlyIncome * 2;
+          break;
+        case 'decenal':
+          monthlyIncome = monthlyIncome * 3; // 30 días ÷ 10 días = 3
           break;
       }
 

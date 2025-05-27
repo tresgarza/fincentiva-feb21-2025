@@ -144,10 +144,10 @@ const Home = () => {
       <div className="relative z-10">
         <Header userData={userData} companyData={companyData} />
         
-        <div className="pt-[80px]"> {/* Reducido el espacio para el header y banner amarillo */}
+        <div className="pt-[120px]"> {/* Aumentado el espacio para el header y banner amarillo */}
           {/* User Welcome Banner - Movido aquí para que aparezca después del banner amarillo */}
           {userData && (
-            <div className="bg-gradient-to-r from-[#33FF57]/20 to-[#40E0D0]/20 backdrop-blur-sm border border-[#33FF57]/30 rounded-lg mx-4 md:mx-8 mb-2 p-4 text-center">
+            <div className="bg-gradient-to-r from-[#33FF57]/20 to-[#40E0D0]/20 backdrop-blur-sm border border-[#33FF57]/30 rounded-lg mx-4 md:mx-8 mb-4 p-4 text-center">
               <h2 className="text-lg md:text-xl font-medium">
                 Bienvenido(a), <span className="font-bold text-[#33FF57]">{getFullName()}</span>
               </h2>

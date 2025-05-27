@@ -44,6 +44,7 @@ export class Company {
       'weekly': [12, 16, 24, 32, 36, 52],     // Nueva estructura de periodos semanales
       'biweekly': [6, 8, 12, 16, 18, 24],     // Nueva estructura de periodos quincenales
       'fortnightly': [6, 8, 12, 16, 18, 24],  // Nueva estructura de periodos catorcenales
+      'decenal': [9, 12, 18, 24, 27, 36],     // Nueva estructura de periodos decenales (cada 10 días)
       'monthly': [3, 4, 6, 8, 9, 12]          // Nueva estructura de periodos mensuales
     };
     return periods[paymentFrequency] || periods.monthly;
@@ -54,6 +55,7 @@ export class Company {
       'weekly': 'semanas',
       'biweekly': 'quincenas',
       'fortnightly': 'catorcenas',
+      'decenal': 'decenas',
       'monthly': 'meses'
     };
     return labels[paymentFrequency] || 'meses';
@@ -69,6 +71,7 @@ export class Company {
       'weekly': 52,
       'biweekly': 24,
       'fortnightly': 26,
+      'decenal': 36.5, // 365 días ÷ 10 días = 36.5
       'monthly': 12
     }[payment_frequency] || 12;
 
@@ -382,6 +385,7 @@ export class Company {
       'weekly': 52,
       'biweekly': 24,
       'fortnightly': 26,
+      'decenal': 36.5, // 365 días ÷ 10 días = 36.5
       'monthly': 12
     }[paymentFrequency] || 12;
 

@@ -87,7 +87,7 @@ const Hero = ({
 
   return (
     <Section
-      className="pt-8"
+      className="pt-0"
       crosses
       crossesOffset="lg:translate-y-[5.25rem]"
       customPaddings
@@ -123,8 +123,8 @@ const Hero = ({
       </AnimatePresence>
 
       <div ref={parallaxRef} className="container relative">
-        <div className="relative z-1 max-w-[120rem] mx-auto mb-1">
-          <h1 className="h2 mb-0 mt-8 md:mt-8">
+        <div className="relative z-1 max-w-[120rem] mx-auto mb-0">
+          <h1 className="h2 mb-0 mt-0">
             <div className="h-[60px] md:h-[90px] flex items-center justify-center text-base md:text-4xl">
                 <Typewriter
                   options={{
@@ -145,14 +145,14 @@ const Hero = ({
                 />
               </div>
             </h1>
-          <p className="body-2 max-w-[52rem] mx-auto mb-1 text-n-2 text-center text-sm md:text-base hidden md:block">
+          <p className="body-2 max-w-[52rem] mx-auto mb-0 text-n-2 text-center text-sm md:text-base hidden md:block">
               Descubre cuánto puedes solicitar según tus ingresos y elige el plan<br className="hidden md:block"/>
               de pagos que mejor se adapte a tu presupuesto. Sin complicaciones, 100% en línea.<br className="hidden md:block"/>
           </p>
         </div>
 
         {/* Botones de selección con tamaño ajustado en móvil */}
-        <div className="flex justify-center gap-2 md:gap-4 mb-4">
+        <div className="flex justify-center gap-2 md:gap-4 mb-2">
           <button
             onClick={() => setActiveForm('product')}
             className={`px-4 md:px-12 py-2 rounded-lg text-sm md:text-base transition-all duration-300 ${

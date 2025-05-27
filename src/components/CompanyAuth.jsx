@@ -73,6 +73,7 @@ const CompanyAuth = ({ onAuthenticated }) => {
     { value: 'weekly', label: 'Semanal' },
     { value: 'fortnightly', label: 'Catorcenal' },
     { value: 'biweekly', label: 'Quincenal' },
+    { value: 'decenal', label: 'Decenal' },
     { value: 'monthly', label: 'Mensual' }
   ];
 
