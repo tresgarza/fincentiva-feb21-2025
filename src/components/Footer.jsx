@@ -4,11 +4,17 @@ import logoBuro from "../assets/logos/logo_buro.png";
 import logoCondusef from "../assets/logos/logo_condusef.png";
 import logoCNBV from "../assets/logos/Logo_CNBV.png";
 import { FaFileAlt } from 'react-icons/fa';
+import logo from "../assets/logos/fincentiva-logo.png";
 
 const Footer = () => {
   return (
     <footer id="footer" className="py-10 bg-n-8 border-t border-n-6">
       <div className="container mx-auto px-4">
+        {/* Logo de la empresa */}
+        <div className="text-center mb-8">
+          <img src={logo} alt="FINCENTIVA" className="h-[60px] w-auto mx-auto mb-4" />
+        </div>
+
         {/* Sección de Reguladores */}
         <div className="mb-12">
           <h4 className="text-lg font-semibold text-n-1 mb-6 text-center whitespace-normal">

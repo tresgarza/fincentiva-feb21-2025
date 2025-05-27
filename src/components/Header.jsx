@@ -5,6 +5,7 @@ import { HambugerMenu } from "./design/Header";
 import MenuSvg from "../assets/svg/MenuSvg";
 import { FaSignOutAlt, FaUser } from "react-icons/fa";
 import { getCompanyAdvisor } from "../services/supabaseServices";
+import logo from "../assets/logos/fincentiva-logo.png";
 
 const Header = ({ userData, companyData }) => {
   const pathname = useLocation();
@@ -34,7 +35,7 @@ const Header = ({ userData, companyData }) => {
     const paternalSurname = storedUserData.paternal_surname || '';
     const maternalSurname = storedUserData.maternal_surname || '';
     const lastName = storedUserData.lastName || '';
-    
+
     // Si tenemos el formato de nombre completamente separado
     if (firstName && (paternalSurname || maternalSurname)) {
       return `${firstName} ${paternalSurname} ${maternalSurname}`.trim();
@@ -63,7 +64,7 @@ const Header = ({ userData, companyData }) => {
   }, [storedCompanyData]);
 
   const handleClick = (e) => {
-    e.preventDefault();
+      e.preventDefault();
     const href = e.currentTarget.getAttribute("href");
     
     if (href === "#home" || href === "#hero") {
@@ -128,10 +129,10 @@ const Header = ({ userData, companyData }) => {
       <div className="flex items-center px-4 lg:px-6 max-lg:py-2 h-[50px]">
         <a 
           href="#hero" 
-          className="block w-[10rem] mr-12"
+          className="block w-[12rem] mr-12"
           onClick={handleClick}
         >
-          <h1 className="text-xl font-bold text-white">FINCENTIVA</h1>
+          <img src={logo} alt="FINCENTIVA" className="h-[40px] w-auto" />
         </a>
 
         <nav
