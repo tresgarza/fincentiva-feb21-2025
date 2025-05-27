@@ -7,12 +7,63 @@ const WarningBanner = () => {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
 
-  // Banner styling for login page (side position)
+  // Banner styling for login page (side position on desktop, top on mobile)
   if (isLoginPage) {
     return (
       <AnimatePresence>
+        {/* Mobile version - positioned at top */}
         <motion.div
-          className="fixed right-0 top-1/4 z-40 max-w-[280px]"
+          className="fixed top-4 left-4 right-4 z-40 md:hidden"
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, type: 'spring', stiffness: 100 }}
+        >
+          <motion.div
+            className="relative overflow-hidden bg-gradient-to-r from-amber-600/90 to-amber-500/90 backdrop-blur-sm text-black border border-amber-400 shadow-lg rounded-lg py-3 px-4"
+          >
+            {/* Pulso de advertencia */}
+            <motion.div
+              className="absolute top-0 left-0 w-full h-full bg-amber-300/30"
+              animate={{ 
+                opacity: [0, 0.3, 0], 
+                scale: [0.85, 1]
+              }}
+              transition={{ 
+                repeat: Infinity, 
+                repeatType: "loop",
+                duration: 2.5,
+                ease: "easeInOut"
+              }}
+            />
+            
+            <div className="flex items-center space-x-3 relative z-10">
+              <div className="flex-shrink-0">
+                <motion.div
+                  className="w-6 h-6 bg-amber-800/80 rounded-full flex items-center justify-center"
+                  animate={{ rotate: [0, 5, 0, -5, 0] }}
+                  transition={{ 
+                    repeat: Infinity, 
+                    repeatType: "loop",
+                    duration: 2.5,
+                    ease: "easeInOut" 
+                  }}
+                >
+                  <HiExclamation className="text-white text-sm" />
+                </motion.div>
+              </div>
+              
+              <div className="flex-1">
+                <p className="font-medium text-xs leading-tight">
+                  <strong>IMPORTANTE:</strong> ¡Financiera Incentiva NO solicita dinero o comisiones por adelantado para la evaluación de créditos!
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Desktop version - positioned on the right side */}
+        <motion.div
+          className="fixed right-0 top-1/4 z-40 max-w-[280px] hidden md:block"
           initial={{ x: 300, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, type: 'spring', stiffness: 100 }}

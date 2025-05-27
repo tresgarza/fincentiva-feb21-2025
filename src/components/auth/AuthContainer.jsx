@@ -16,7 +16,7 @@ const AuthContainer = ({ onAuthenticated }) => {
   };
   
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 pt-20 md:pt-4 relative overflow-hidden">
       {/* Animated Background Effects */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-gradient-to-br from-n-8 via-n-8/95 to-n-8/90 z-0" />
