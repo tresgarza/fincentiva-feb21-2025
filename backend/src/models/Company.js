@@ -71,7 +71,7 @@ export class Company {
       'weekly': 52,
       'biweekly': 24,
       'fortnightly': 26,
-      'decenal': 36.5, // 365 días ÷ 10 días = 36.5
+      'decenal': 36, // 360 días ÷ 10 días = 36 (año comercial)
       'monthly': 12
     }[payment_frequency] || 12;
 
@@ -385,7 +385,7 @@ export class Company {
       'weekly': 52,
       'biweekly': 24,
       'fortnightly': 26,
-      'decenal': 36.5, // 365 días ÷ 10 días = 36.5
+      'decenal': 36, // 360 días ÷ 10 días = 36 (año comercial)
       'monthly': 12
     }[paymentFrequency] || 12;
 

@@ -46,8 +46,8 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
         maxPeriods = 26; // 26 quincenas (1 año)
         break;
       case 'decenal':
-        periodicRate = annualRate / 100 / 36.5; // Tasa decenal (365 días ÷ 10 días)
-        maxPeriods = 36.5; // 36.5 decenas (1 año)
+        periodicRate = annualRate / 100 / 36; // Tasa decenal (360 días ÷ 10 días)
+        maxPeriods = 36; // 36 decenas (1 año comercial)
         break;
       default:
         periodicRate = annualRate / 100 / 12; // Tasa mensual
