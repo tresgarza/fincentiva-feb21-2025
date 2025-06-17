@@ -117,7 +117,8 @@ const Register = ({ onAuthenticated, switchToLogin, initialCompanyCode = '' }) =
         birth_date: birthDate,
         phone: phone,
         email: email,
-        company_id: companyData.id
+        company_id: companyData.id,
+        payment_frequency: paymentFrequency
       };
       
       // Registrar usuario

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getCompanies, getByCode } from '../services/api';
+import { getCompanies, getByCode, getUserByPhone } from '../services/api';
 import Button from './Button';
 import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt, FaCalendarAlt, FaUser, FaPhone } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -50,11 +50,18 @@ const CompanyAuth = ({ onAuthenticated }) => {
 
     try {
       const companyData = await getByCode(employeeCode);
-      // Agregar la frecuencia de pago seleccionada y los datos personales a los datos de la empresa
+      
+      // Intentar obtener los datos del usuario registrado
+      const existingUser = await getUserByPhone(phone, companyData.id);
+      
+      // Si el usuario existe, usar su payment_frequency guardado, si no, usar el seleccionado
+      const userPaymentFrequency = existingUser ? existingUser.payment_frequency : paymentFrequency;
+      
+      // Agregar la frecuencia de pago y los datos personales a los datos de la empresa
       const companyWithUserData = {
         ...companyData,
-        payment_frequency: paymentFrequency,
-        user_data: {
+        payment_frequency: userPaymentFrequency,
+        user_data: existingUser || {
           firstName,
           lastName,
           phone
