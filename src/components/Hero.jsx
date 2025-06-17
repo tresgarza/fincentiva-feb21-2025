@@ -266,7 +266,7 @@ const Hero = ({
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                <span>Indica tus ingresos mensuales</span>
+                <span>Indica tus ingresos {companyData?.payment_frequency === 'weekly' ? 'semanales' : companyData?.payment_frequency === 'biweekly' ? 'quincenales' : companyData?.payment_frequency === 'fortnightly' ? 'catorcenales' : companyData?.payment_frequency === 'decenal' ? 'decenales' : 'mensuales'}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-5 h-5 rounded-full bg-[#33FF57]/20 text-[#33FF57] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>

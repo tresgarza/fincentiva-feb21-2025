@@ -163,7 +163,7 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
             
             <h3 className="text-xl lg:text-2xl font-bold mb-2 text-center">Solicita tu Crédito</h3>
             <p className="text-sm text-n-4 mb-4 text-center">
-              Ingresa tus datos para calcular tu mensualidad
+              Ingresa tus datos para calcular tu plan de pagos
             </p>
             
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
