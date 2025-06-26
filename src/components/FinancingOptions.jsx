@@ -1265,9 +1265,6 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                               <span className={`text-xl font-bold ${exceeds ? 'text-red-500' : 'text-[#33FF57]'} leading-tight`}>
                               {formatCurrency(option.paymentPerPeriod)}
                             </span>
-                              <span className="text-[10px] text-n-3 ml-1">
-                              /{getPeriodShortLabel(option.periodLabel)}
-                            </span>
                             </div>
                           </div>
 
