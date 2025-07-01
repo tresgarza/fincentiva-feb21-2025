@@ -11,6 +11,7 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
   const [error, setError] = useState("");
   const [maxCredit, setMaxCredit] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasOneYearEmployment, setHasOneYearEmployment] = useState(false);
 
   const getPaymentFrequencyLabel = () => {
     switch (company?.payment_frequency) {
@@ -97,6 +98,11 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
     }
 
     if (!validateAmount(amount)) return;
+
+    if (!hasOneYearEmployment) {
+      setError("Debes confirmar que tienes más de 12 meses trabajando en la empresa");
+      return;
+    }
 
     setIsSubmitting(true);
     setError("");
@@ -239,6 +245,35 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
                 )}
               </div>
 
+              {/* Checkbox de Antigüedad Laboral */}
+              <div className="flex flex-col gap-2">
+                <div className="bg-[#1A1F26] border border-[#2D3643] rounded-lg p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex items-center h-5">
+                      <input
+                        type="checkbox"
+                        id="employment-checkbox"
+                        checked={hasOneYearEmployment}
+                        onChange={(e) => {
+                          setHasOneYearEmployment(e.target.checked);
+                          setError("");
+                        }}
+                        className="w-4 h-4 text-[#33FF57] bg-[#2D3643] border-[#2D3643] rounded focus:ring-[#33FF57] focus:ring-2"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label htmlFor="employment-checkbox" className="text-sm text-n-1 cursor-pointer">
+                        <span className="font-medium">Confirmo que tengo más de 12 meses (1 año) trabajando en mi empresa actual.</span>
+                      </label>
+                      <p className="text-xs text-n-3 mt-1">
+                        <span className="text-yellow-400">⚠️ Importante:</span> Esta información será verificada durante el proceso de aprobación. 
+                        Declaraciones falsas resultarán en el rechazo automático de la solicitud.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {error && (
                 <div className="relative overflow-hidden rounded-lg">
                   <div className="absolute inset-0 bg-red-500/10 animate-pulse"></div>
@@ -250,7 +285,7 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
 
               <button
                 type="submit"
-                disabled={isSubmitting || isLoading}
+                disabled={isSubmitting || isLoading || !hasOneYearEmployment}
                 className={`
                   relative overflow-hidden group
                   w-full py-2.5 rounded-lg text-sm font-bold mt-0
