@@ -63,8 +63,8 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
     // Ajustamos el valor para considerar el IVA sobre intereses (16%)
     const maxLoanWithIVA = maxLoan / (1 + (periodicRate * maxPeriods * 0.16));
     
-    // Retornamos el mínimo entre el máximo calculado y 100,000
-    return Math.min(Math.floor(maxLoanWithIVA), 100000);
+    // Retornamos el mínimo entre el máximo calculado y 50,000
+    return Math.min(Math.floor(maxLoanWithIVA), 50000);
   };
 
   const validateAmount = (value) => {
@@ -77,8 +77,8 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
       setError("El monto mínimo es de $3,000 MXN");
       return false;
     }
-    if (numValue > 100000) {
-      setError("El monto máximo es de $100,000 MXN");
+    if (numValue > 50000) {
+      setError("El monto máximo es de $50,000 MXN");
       return false;
     }
     if (maxCredit && numValue > maxCredit) {

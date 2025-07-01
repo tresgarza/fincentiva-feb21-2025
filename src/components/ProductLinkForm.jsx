@@ -69,8 +69,8 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
     // Ajustamos el valor para considerar el IVA sobre intereses (16%)
     const maxLoanWithIVA = maxLoan / (1 + (periodicRate * maxPeriods * 0.16));
     
-    // Retornamos el mínimo entre el máximo calculado y 100,000
-    return Math.min(Math.floor(maxLoanWithIVA), 100000);
+    // Retornamos el mínimo entre el máximo calculado y 50,000
+    return Math.min(Math.floor(maxLoanWithIVA), 50000);
   };
 
   const validateLink = (url) => {
