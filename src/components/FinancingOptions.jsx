@@ -74,6 +74,12 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
 
   const maxPaymentPerPeriod = calculateMaxPaymentPerPeriod();
 
+  // Verificar si el monto es menor al mínimo requerido ($3,000)
+  const isBelowMinimumAmount = () => {
+    const amount = parseFloat(product.price) || 0;
+    return amount < 3000;
+  };
+
   // Verificar si un plan excede la capacidad de pago
   const exceedsPaymentCapacity = (paymentPerPeriod, periodLabel) => {
     // Si el periodo del plan es diferente al periodo de la empresa, convertir
@@ -1184,27 +1190,40 @@ Me gustaría recibir más información sobre el proceso de solicitud.
               
               {/* Contenedor para los planes en una sola columna vertical */}
               <div className="flex flex-col gap-2 flex-grow">
-                {/* Ordenar los planes de mayor a menor plazo */}
-                {[...paymentOptions].sort((a, b) => b.periods - a.periods).map((option, index) => {
-                  const isSelected = selectedPlan === option;
-                  const exceeds = exceedsPaymentCapacity(option.paymentPerPeriod, option.periodLabel);
-                  
-                  // El plan recomendado es el que tiene más periodos de pago (mayor plazo)
-                  const isRecommended = option.periods === Math.max(...paymentOptions.map(opt => opt.periods));
-                  
-                  return (
-                    <div
-                      key={option.periods}
-                      onClick={() => !exceeds && setSelectedPlan(option)}
-                      className={`
-                        relative bg-n-7 rounded-md p-2 
-                        ${exceeds ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.01] hover:shadow-md hover:shadow-[#33FF57]/20 hover:border-[#33FF57]/30 hover:border'}
-                        transition-all duration-200 ease-in-out
-                        ${isSelected && !exceeds
-                          ? 'ring-1 ring-[#33FF57] shadow-sm shadow-[#33FF57]/20 scale-[1.01]' 
-                          : ''}
-                      `}
-                    >
+                {/* Verificar si el monto es menor al mínimo */}
+                {isBelowMinimumAmount() ? (
+                  <div className="bg-n-7 rounded-md p-4 opacity-75 cursor-not-allowed">
+                    <div className="text-center">
+                      <div className="text-red-500 text-sm font-medium mb-2">
+                        El monto mínimo de solicitud de crédito es de $3,000 pesos
+                      </div>
+                      <div className="text-n-3 text-xs">
+                        Por favor ajusta el monto de tu solicitud
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Ordenar los planes de mayor a menor plazo */
+                  [...paymentOptions].sort((a, b) => b.periods - a.periods).map((option, index) => {
+                    const isSelected = selectedPlan === option;
+                    const exceeds = exceedsPaymentCapacity(option.paymentPerPeriod, option.periodLabel);
+                    
+                    // El plan recomendado es el que tiene más periodos de pago (mayor plazo)
+                    const isRecommended = option.periods === Math.max(...paymentOptions.map(opt => opt.periods));
+                    
+                    return (
+                      <div
+                        key={option.periods}
+                        onClick={() => !exceeds && setSelectedPlan(option)}
+                        className={`
+                          relative bg-n-7 rounded-md p-2 
+                          ${exceeds ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.01] hover:shadow-md hover:shadow-[#33FF57]/20 hover:border-[#33FF57]/30 hover:border'}
+                          transition-all duration-200 ease-in-out
+                          ${isSelected && !exceeds
+                            ? 'ring-1 ring-[#33FF57] shadow-sm shadow-[#33FF57]/20 scale-[1.01]' 
+                            : ''}
+                        `}
+                      >
                       {/* Indicadores superiores: clickable y recomendado */}
                       {!isSelected && !exceeds && (
                         <div className="absolute top-1 right-1">
@@ -1290,7 +1309,8 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                       </div>
                     </div>
                   );
-                })}
+                  })
+                )}
               </div>
 
               {/* Action Buttons */}
@@ -1304,13 +1324,15 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                 <Button
                   className={`
                     px-3 py-1 text-xs bg-n-7 hover:bg-n-6 transition-colors
-                    ${!selectedPlan ? 'opacity-50 cursor-not-allowed' : ''}
+                    ${!selectedPlan || isBelowMinimumAmount() ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
-                  disabled={!selectedPlan}
+                  disabled={!selectedPlan || isBelowMinimumAmount()}
                   onClick={handlePlanSelection}
                 >
                   <span className="flex items-center gap-1.5">
-                    {selectedPlan ? (
+                    {isBelowMinimumAmount() ? (
+                      'Monto Insuficiente'
+                    ) : selectedPlan ? (
                       <>
                         Continuar con Plan Seleccionado
                         <svg 

@@ -72,8 +72,8 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
       setError("Por favor ingresa un monto válido");
       return false;
     }
-    if (numValue < 1000) {
-      setError("El monto mínimo es de $1,000 MXN");
+    if (numValue < 3000) {
+      setError("El monto mínimo es de $3,000 MXN");
       return false;
     }
     if (numValue > 100000) {
