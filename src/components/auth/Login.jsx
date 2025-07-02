@@ -88,9 +88,13 @@ const Login = ({ onAuthenticated, switchToRegister }) => {
         return;
       }
       
-      // Combinar datos de empresa y usuario
+      // Determinar la frecuencia de pago: priorizar la del usuario si existe
+      const mergedPaymentFrequency = userData?.payment_frequency || companyData.payment_frequency;
+
+      // Combinar datos de empresa y usuario, asegurando la frecuencia correcta
       const authData = {
         ...companyData,
+        payment_frequency: mergedPaymentFrequency,
         user_data: userData
       };
       
